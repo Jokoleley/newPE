@@ -1,0 +1,1912 @@
+Pe hub
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PE Learning Hub - Progressive Quizzes</title>
+    <style>
+        body {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        .app-container {
+            max-width: 100vw;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        .screen {
+            display: none;
+            padding: 20px;
+            min-height: calc(100vh - 40px);
+            animation: slideIn 0.3s ease-in-out;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* Header */
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .progress-ring {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: conic-gradient(#4CAF50 0deg 216deg, #e0e0e0 216deg 360deg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+
+        /* Login Screen */
+        .login-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .login-card {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .login-title {
+            font-size: 2.5rem;
+            color: #667eea;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Dashboard */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .dashboard-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 12px;
+            background: #e0e0e0;
+            border-radius: 6px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #8BC34A);
+            transition: width 0.5s ease;
+        }
+
+        .badges-container {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        /* Main Menu */
+        .main-menu {
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+            align-items: center;
+            min-height: 60vh;
+        }
+
+        .menu-button {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            min-width: 250px;
+        }
+
+        .menu-button:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+
+        .menu-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+
+        .menu-title {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        /* Sports Grid */
+        .sports-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .sport-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .sport-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+
+        .sport-icon {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+
+        .sport-name {
+            font-weight: bold;
+            color: #333;
+        }
+
+        /* Quiz Levels */
+        .quiz-levels {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .level-button {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .level-button:hover {
+            transform: translateY(-5px);
+        }
+
+        .level-button.locked {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .level-number {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .level-progress {
+            margin-top: 15px;
+        }
+
+        /* Quiz Topics Grid */
+        .quiz-topics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .quiz-topic-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .quiz-topic-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .quiz-topic-card.locked {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: #f5f5f5;
+        }
+
+        .quiz-topic-card.completed {
+            background: linear-gradient(135deg, #4CAF50, #8BC34A);
+            color: white;
+        }
+
+        .lock-icon {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 1.2rem;
+            color: #999;
+        }
+
+        .quiz-score {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #FFD700;
+            color: #333;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        /* Quiz Interface */
+        .quiz-container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 800px;
+            margin: 0 auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .quiz-intro {
+            background: linear-gradient(135deg, #f0f8ff, #e6f3ff);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border-left: 5px solid #667eea;
+        }
+
+        .quote-section {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .quote-text {
+            font-size: 1.2rem;
+            font-style: italic;
+            color: #333;
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+
+        .quote-author {
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .society-text {
+            font-size: 1rem;
+            line-height: 1.6;
+            color: #555;
+            text-align: justify;
+        }
+
+        .content-toggle {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .toggle-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+
+        .toggle-btn:hover {
+            background: #5a67d8;
+        }
+
+        .quiz-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .quiz-progress {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .question-counter {
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .question-text {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 25px;
+            line-height: 1.4;
+        }
+
+        .answers-grid {
+            display: grid;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .answer-btn {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 15px 20px;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1rem;
+        }
+
+        .answer-btn:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+
+        .answer-btn.selected {
+            border-color: #667eea;
+            background: #667eea;
+            color: white;
+        }
+
+        .answer-btn.correct {
+            border-color: #4CAF50;
+            background: #4CAF50;
+            color: white;
+        }
+
+        .answer-btn.incorrect {
+            border-color: #f44336;
+            background: #f44336;
+            color: white;
+        }
+
+        .explanation {
+            background: #f0f8ff;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .explanation.show {
+            display: block;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .quiz-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .nav-btn:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+        }
+
+        .nav-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .nav-btn.back {
+            background: #718096;
+        }
+
+        /* Results Screen */
+        .results-container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            margin: 0 auto;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .results-score {
+            font-size: 4rem;
+            font-weight: bold;
+            color: #4CAF50;
+            margin-bottom: 20px;
+        }
+
+        .results-feedback {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            color: #555;
+        }
+
+        .results-breakdown {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .breakdown-item {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+        }
+
+        .breakdown-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .breakdown-label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .main-menu {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .menu-button {
+                min-width: 200px;
+                padding: 30px;
+            }
+
+            .sports-grid, .quiz-topics-grid {
+                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+                gap: 15px;
+            }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+
+            .quiz-container, .results-container {
+                margin: 0 10px;
+                padding: 20px;
+            }
+
+            .results-breakdown {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .login-card {
+                margin: 20px;
+                padding: 30px;
+            }
+
+            .sports-grid, .quiz-topics-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .sport-icon {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Login Screen -->
+        <div id="login-screen" class="screen active">
+            <div class="login-container">
+                <div class="login-card">
+                    <h1 class="login-title">🏃‍♂️ PE Hub</h1>
+                    <form id="login-form">
+                        <div class="form-group">
+                            <label for="username">Username</label>
+                            <input type="text" id="username" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="password">Password</label>
+                            <input type="password" id="password" required>
+                        </div>
+                        <button type="submit" class="login-btn">Login</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Screen -->
+        <div id="dashboard-screen" class="screen">
+            <div class="header">
+                <div class="logo">🏃‍♂️ PE Hub Dashboard</div>
+                <div class="user-info">
+                    <span id="welcome-text">Welcome, Student!</span>
+                    <div class="progress-ring" id="overall-progress">60%</div>
+                </div>
+            </div>
+
+            <div class="dashboard-grid">
+                <div class="dashboard-card">
+                    <div class="card-title">📊 Quiz Progress</div>
+                    <div id="quiz-progress-details">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="quiz-progress-bar" style="width: 30%"></div>
+                        </div>
+                        <p id="quiz-progress-text">Level 2: 0 of 10 quizzes completed</p>
+                    </div>
+                </div>
+
+                <div class="dashboard-card">
+                    <div class="card-title">🏆 Achievements</div>
+                    <div class="badges-container" id="badges-container">
+                        <div class="badge">Health Foundation</div>
+                        <div class="badge">Body Systems</div>
+                    </div>
+                </div>
+
+                <div class="dashboard-card">
+                    <div class="card-title">📈 Statistics</div>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-number" id="total-quizzes">0</div>
+                            <div class="stat-label">Quizzes Completed</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number" id="avg-score">0%</div>
+                            <div class="stat-label">Average Score</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number" id="current-level">2</div>
+                            <div class="stat-label">Current Level</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number" id="next-unlock">10</div>
+                            <div class="stat-label">Quizzes to Next Level</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-card">
+                    <div class="card-title">🎯 Recent Activity</div>
+                    <div id="recent-activity">
+                        <p>🔓 "Foundations of Health" - Available</p>
+                        <p>🔓 "Strong Body, Strong Mind" - Available</p>
+                        <p>🔓 "Fuel & Nutrition" - Available</p>
+                        <p>🔓 "Teamwork Counts" - Available</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="main-menu">
+                <div class="menu-button" onclick="showScreen('sports-screen')">
+                    <div class="menu-icon">⚽</div>
+                    <div class="menu-title">Sports</div>
+                </div>
+                <div class="menu-button" onclick="showScreen('quiz-levels-screen')">
+                    <div class="menu-icon">🧠</div>
+                    <div class="menu-title">Quiz</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sports Screen -->
+        <div id="sports-screen" class="screen">
+            <div class="header">
+                <div class="logo">⚽ Sports Menu</div>
+                <button class="nav-btn back" onclick="showScreen('dashboard-screen')">← Back</button>
+            </div>
+
+            <div class="sports-grid" id="sports-grid">
+                <!-- Sports will be populated by JavaScript -->
+            </div>
+        </div>
+
+        <!-- Quiz Levels Screen -->
+        <div id="quiz-levels-screen" class="screen">
+            <div class="header">
+                <div class="logo">🧠 Quiz Levels</div>
+                <button class="nav-btn back" onclick="showScreen('dashboard-screen')">← Back</button>
+            </div>
+
+            <div class="quiz-levels" id="quiz-levels-container">
+                <!-- Quiz levels will be populated by JavaScript -->
+            </div>
+        </div>
+
+        <!-- Quiz Topics Screen -->
+        <div id="quiz-topics-screen" class="screen">
+            <div class="header">
+                <div class="logo" id="quiz-level-title">🌳 Level 2 Quizzes</div>
+                <button class="nav-btn back" onclick="showScreen('quiz-levels-screen')">← Back</button>
+            </div>
+
+            <div class="quiz-topics-grid" id="quiz-topics-grid">
+                <!-- Quiz topics will be populated by JavaScript -->
+            </div>
+        </div>
+
+        <!-- Quiz Screen -->
+        <div id="quiz-screen" class="screen">
+            <div class="quiz-container">
+                <div class="quiz-intro" id="quiz-intro">
+                    <div class="quote-section">
+                        <div class="quote-text" id="quote-text">"Quote will appear here"</div>
+                        <div class="quote-author" id="quote-author">- Author</div>
+                    </div>
+                    <div class="society-text" id="society-text">Educational content will appear here...</div>
+                    <div class="content-toggle">
+                        <button class="toggle-btn" onclick="startQuizQuestions()" id="start-quiz-btn">Start Quiz Questions</button>
+                        <button class="toggle-btn" onclick="returnToQuestions()" id="return-quiz-btn" style="display: none; background: #667eea;">← Back to Questions</button>
+                    </div>
+                </div>
+
+                <div class="quiz-header" id="quiz-header" style="display: none;">
+                    <h2 id="quiz-title">Quiz Title</h2>
+                    <div class="quiz-progress">
+                        <span class="question-counter" id="question-counter">Question 1 of 10</span>
+                        <div class="progress-bar" style="width: 200px;">
+                            <div class="progress-fill" id="quiz-progress-fill" style="width: 10%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="quiz-questions" style="display: none;">
+                    <div class="question-text" id="question-text">Question will appear here</div>
+
+                    <div class="answers-grid" id="answers-grid">
+                        <!-- Answer buttons will be populated by JavaScript -->
+                    </div>
+
+                    <div class="explanation" id="explanation">
+                        <strong>Explanation:</strong>
+                        <p id="explanation-text">Explanation will appear here</p>
+                    </div>
+
+                    <div class="quiz-controls">
+                        <button class="nav-btn back" onclick="showQuizTopics(currentLevel)">← Exit Quiz</button>
+                        <button class="nav-btn" onclick="showQuizIntro()" style="background: #28a745;">📖 Review Text</button>
+                        <button class="nav-btn" id="next-btn" onclick="nextQuestion()" disabled>Next Question</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quiz Results Screen -->
+        <div id="quiz-results-screen" class="screen">
+            <div class="results-container">
+                <h2>Quiz Complete!</h2>
+                <div class="results-score" id="final-score">85%</div>
+                <div class="results-feedback" id="results-feedback">Great job! You're mastering the fundamentals.</div>
+                
+                <div class="results-breakdown">
+                    <div class="breakdown-item">
+                        <div class="breakdown-number" id="correct-answers">8</div>
+                        <div class="breakdown-label">Correct Answers</div>
+                    </div>
+                    <div class="breakdown-item">
+                        <div class="breakdown-number" id="incorrect-answers">2</div>
+                        <div class="breakdown-label">Incorrect Answers</div>
+                    </div>
+                </div>
+
+                <div id="strengths-weaknesses">
+                    <h3>📈 Strengths & Areas for Improvement</h3>
+                    <p id="performance-analysis">You showed strong understanding of health concepts but could review nutrition basics.</p>
+                </div>
+
+                <div style="margin-top: 30px;">
+                    <button class="nav-btn" onclick="showQuizTopics(currentLevel)">Continue Learning</button>
+                    <button class="nav-btn back" onclick="showScreen('dashboard-screen')" style="margin-left: 15px;">Dashboard</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // App State
+        let currentUser = null;
+        let currentLevel = 'level2'; // Default to Level 2
+        let currentQuiz = null;
+        let currentQuestion = 0;
+        let quizAnswers = [];
+        let userProgress = {
+            level1: { completed: [], scores: [] },
+            level2: { completed: [], scores: [] },
+            level3: { completed: [], scores: [] },
+            level4: { completed: [], scores: [] },
+            level5: { completed: [], scores: [] },
+            level6: { completed: [], scores: [] }
+        };
+
+        // Sports Data
+        const sportsData = [
+            { name: 'Soccer', icon: '⚽' }, { name: 'Basketball', icon: '🏀' },
+            { name: 'Tennis', icon: '🎾' }, { name: 'Swimming', icon: '🏊‍♂️' },
+            { name: 'Running', icon: '🏃‍♂️' }, { name: 'Volleyball', icon: '🏐' },
+            { name: 'Baseball', icon: '⚾' }, { name: 'Golf', icon: '⛳' },
+            { name: 'Cycling', icon: '🚴‍♂️' }, { name: 'Gymnastics', icon: '🤸‍♀️' },
+            { name: 'Boxing', icon: '🥊' }, { name: 'Wrestling', icon: '🤼‍♂️' },
+            { name: 'Badminton', icon: '🏸' }, { name: 'Hockey', icon: '🏒' },
+            { name: 'Rugby', icon: '🏉' }, { name: 'Cricket', icon: '🏏' },
+            { name: 'Skiing', icon: '⛷️' }, { name: 'Surfing', icon: '🏄‍♂️' },
+            { name: 'Rock Climbing', icon: '🧗‍♂️' }, { name: 'Martial Arts', icon: '🥋' }
+        ];
+
+        // Quiz Topics Data
+        const quizTopics = [
+            { name: "Foundations of Health", icon: "🏥", description: "Body systems and health cycles" },
+            { name: "Strong Body, Strong Mind", icon: "💪", description: "Physical fitness and mental performance" },
+            { name: "Fuel & Nutrition", icon: "🥗", description: "Advanced nutrition science" },
+            { name: "Teamwork Counts", icon: "🤝", description: "Leadership and collaboration" },
+            { name: "Values in Sport", icon: "⚖️", description: "Character development through sport" },
+            { name: "Olympic Journey", icon: "🏅", description: "Olympic ideals and excellence" },
+            { name: "Know Your Body", icon: "🫀", description: "Advanced anatomy and physiology" },
+            { name: "Safe Moves", icon: "🦺", description: "Injury prevention and safety science" },
+            { name: "Fair Play First", icon: "🤝", description: "Ethics and moral reasoning" },
+            { name: "PE in Society", icon: "🌍", description: "Social impact of physical education" }
+        ];
+
+        // Level Definitions (6 Combined Levels)
+        const yearLevels = [
+            { id: 'level1', name: 'Level 1: Foundation', ages: '5-8 years', icon: '🌱', description: 'Years 1-3: Basic Health & Movement' },
+            { id: 'level2', name: 'Level 2: Development', ages: '8-11 years', icon: '🌳', description: 'Years 4-6: Building Skills & Knowledge' },
+            { id: 'level3', name: 'Level 3: Growth', ages: '11-14 years', icon: '🏃‍♂️', description: 'Years 7-9: Physical & Mental Development' },
+            { id: 'level4', name: 'Level 4: Mastery', ages: '14-17 years', icon: '🎯', description: 'Years 10-12: Advanced Understanding' },
+            { id: 'level5', name: 'Level 5: University', ages: '18+ years', icon: '🔬', description: 'Higher Education: Scientific Approach' },
+            { id: 'level6', name: 'Level 6: Researcher', ages: 'Advanced', icon: '📚', description: 'Research Level: Expert Knowledge' }
+        ];
+
+        // Level 2 Quiz Content (Ages 8-11) - More Advanced than Level 1
+        const quizContent = {
+            0: { // Foundations of Health - Level 2 Quiz 1 (Ages 8-11)
+                quote: "To keep the body in good health is a duty... otherwise we shall not be able to keep our mind strong and clear.",
+                author: "Buddha",
+                societyText: "Health is the foundation that supports everything else in your life—your ability to learn, play, and grow. When your body systems work properly, your brain can focus better on schoolwork and problem-solving. The immune system protects you from getting sick, but it needs proper nutrition, sleep, and exercise to stay strong. Your skeletal system provides the framework that supports your muscles, and regular physical activity helps bones grow denser and stronger during childhood. The muscular system works with your bones to create movement, and different types of exercise develop different muscle groups—aerobic exercise strengthens your heart muscle, while resistance activities build skeletal muscles. Your nervous system controls everything your body does, sending electrical signals from your brain to your muscles at incredible speeds. Good health habits create positive cycles: when you eat nutritious foods, you have more energy for physical activity, which helps you sleep better, which helps your body recover and grow stronger. Poor health choices create negative cycles that can affect your performance in school, sports, and social activities. Understanding how your body systems work together helps you make smart choices about nutrition, exercise, rest, and safety that will benefit you throughout your entire life.",
+                questions: [
+                {
+                    question: "According to Buddha, why is keeping the body healthy a duty?",
+                    answers: ["So we can keep our mind strong and clear", "To impress other people", "Because doctors tell us to", "Only for playing sports"],
+                    correct: 0,
+                    explanation: "Correct! Buddha understood that physical health directly supports mental clarity and strength—your body and mind work as a team."
+                },
+                {
+                    question: "What does your immune system need to stay strong and protect you from illness?",
+                    answers: ["Proper nutrition, sleep, and exercise", "Only vitamins from pills", "Just avoiding sick people", "Only washing your hands"],
+                    correct: 0,
+                    explanation: "Correct! Your immune system is like an army that needs good fuel (nutrition), rest (sleep), and training (exercise) to defend your body effectively."
+                },
+                {
+                    question: "How does regular physical activity benefit your skeletal system during childhood?",
+                    answers: ["Helps bones grow denser and stronger", "Makes bones lighter and weaker", "Only affects muscles, not bones", "Stops bone growth completely"],
+                    correct: 0,
+                    explanation: "Correct! Weight-bearing activities and exercise create stress on bones that signals them to grow stronger and denser, which is especially important during childhood growth."
+                },
+                {
+                    question: "What's the difference between how aerobic exercise and resistance activities affect your muscles?",
+                    answers: ["Aerobic strengthens heart muscle, resistance builds skeletal muscles", "They do exactly the same thing", "Only aerobic exercise affects muscles", "Resistance activities only affect bones"],
+                    correct: 0,
+                    explanation: "Correct! Aerobic exercise (like running) strengthens your heart muscle and improves cardiovascular fitness, while resistance activities (like push-ups) build your skeletal muscles."
+                },
+                {
+                    question: "How fast does your nervous system send signals from your brain to your muscles?",
+                    answers: ["At incredible speeds using electrical signals", "Very slowly through the bloodstream", "Only when you're thinking about it", "It doesn't send signals to muscles"],
+                    correct: 0,
+                    explanation: "Correct! Your nervous system uses electrical impulses that travel extremely fast—up to 120 meters per second—to coordinate movement and reactions."
+                },
+                {
+                    question: "What happens when you create positive health cycles?",
+                    answers: ["Good choices lead to more energy and better performance", "Nothing changes in your daily life", "You become tired and weak", "You can skip exercise and still be healthy"],
+                    correct: 0,
+                    explanation: "Correct! Positive cycles work like this: nutritious food → more energy → better exercise → improved sleep → stronger body → better focus → improved performance."
+                },
+                {
+                    question: "How can poor health choices create negative cycles?",
+                    answers: ["They can affect performance in school, sports, and social activities", "They only affect how you look", "They have no real consequences", "They only matter when you're older"],
+                    correct: 0,
+                    explanation: "Correct! Negative cycles might look like: poor nutrition → low energy → avoiding exercise → poor sleep → weakened immune system → getting sick more often → missing school."
+                },
+                {
+                    question: "Why is it important to understand how your body systems work together?",
+                    answers: ["It helps you make smart choices about health throughout life", "Only doctors need to know this information", "It's just interesting but not practical", "You can't control your body systems anyway"],
+                    correct: 0,
+                    explanation: "Correct! Understanding your body helps you make informed decisions about nutrition, exercise, rest, and safety that will benefit you for your entire life."
+                },
+                {
+                    question: "Which body systems must work together to create movement?",
+                    answers: ["Skeletal and muscular systems", "Only the muscular system", "Only the skeletal system", "Digestive and respiratory systems"],
+                    correct: 0,
+                    explanation: "Correct! Your skeletal system provides the framework and attachment points, while your muscular system contracts to move the bones and create all body movements."
+                },
+                {
+                    question: "What role does the nervous system play in physical activity?",
+                    answers: ["Controls and coordinates all body movements", "Only controls breathing", "Just makes you feel tired", "Has no role in movement"],
+                    correct: 0,
+                    explanation: "Correct! Your nervous system is like the command center that sends instructions to muscles, coordinates balance, and processes sensory information during all physical activities."
+                }
+                ]
+            },
+            1: { // Strong Body, Strong Mind - Level 2 Quiz 2 (Ages 8-11)
+                quote: "Physical fitness is not only one of the most important keys to a healthy body, it is the basis of dynamic and creative intellectual activity.",
+                author: "John F. Kennedy",
+                societyText: "Physical fitness creates a foundation for both physical health and mental performance that extends far beyond the gymnasium. When you engage in regular physical activity, your heart becomes stronger and more efficient at pumping blood, which delivers oxygen and nutrients to every cell in your body, including brain cells. This improved circulation enhances cognitive functions like memory, attention, and problem-solving abilities. Different types of physical activities develop different aspects of fitness: cardiovascular endurance (running, cycling) strengthens your heart and lungs, muscular strength (push-ups, climbing) builds power in your muscles, flexibility (stretching, yoga) maintains joint mobility, and coordination activities (dancing, sports) improve the connection between your brain and muscles. Regular exercise also releases chemicals called endorphins that improve mood and reduce stress, helping you feel more positive and confident. Physical challenges teach mental resilience—when you push through the discomfort of a difficult workout, you're training your mind to persevere through academic and personal challenges. The discipline required to maintain a fitness routine transfers to other areas of life, helping you develop better study habits, time management skills, and goal-setting abilities. Students who are physically active often demonstrate better focus in class, improved academic performance, and stronger social relationships with their peers.",
+                questions: [
+                {
+                    question: "According to John F. Kennedy, what does physical fitness provide the basis for?",
+                    answers: ["Dynamic and creative intellectual activity", "Only muscle development", "Just weight management", "Only sports performance"],
+                    correct: 0,
+                    explanation: "Correct! Kennedy understood that physical fitness enhances mental capabilities, creativity, and intellectual performance—not just physical strength."
+                },
+                {
+                    question: "How does improved circulation from exercise benefit your brain?",
+                    answers: ["Delivers oxygen and nutrients to enhance cognitive functions", "Only prevents headaches", "Just makes you feel tired", "Has no effect on brain function"],
+                    correct: 0,
+                    explanation: "Correct! Better blood flow from exercise delivers essential oxygen and nutrients to brain cells, improving memory, attention, and problem-solving abilities."
+                },
+                {
+                    question: "What type of physical activity specifically strengthens your heart and lungs?",
+                    answers: ["Cardiovascular endurance activities like running and cycling", "Only weight lifting", "Just stretching exercises", "Only team sports"],
+                    correct: 0,
+                    explanation: "Correct! Cardiovascular or aerobic activities make your heart work harder, strengthening it like any other muscle and improving lung capacity."
+                },
+                {
+                    question: "What do coordination activities like dancing and sports improve?",
+                    answers: ["The connection between your brain and muscles", "Only your sense of rhythm", "Just your balance", "Only your flexibility"],
+                    correct: 0,
+                    explanation: "Correct! Coordination activities train your nervous system to send precise signals from your brain to your muscles, improving motor control and reaction time."
+                },
+                {
+                    question: "What are endorphins and how do they affect you?",
+                    answers: ["Chemicals released during exercise that improve mood and reduce stress", "Vitamins found in sports drinks", "Proteins that build muscle", "Hormones that make you tired"],
+                    correct: 0,
+                    explanation: "Correct! Endorphins are natural 'feel-good' chemicals your body produces during exercise that act like natural mood boosters and stress relievers."
+                },
+                {
+                    question: "How do physical challenges help develop mental resilience?",
+                    answers: ["They train your mind to persevere through difficulties", "They only make you physically stronger", "They have no mental benefits", "They only teach you to avoid challenges"],
+                    correct: 0,
+                    explanation: "Correct! When you push through physical discomfort during exercise, you're practicing mental toughness that helps you persist through academic and life challenges."
+                },
+                {
+                    question: "What life skills does maintaining a fitness routine help develop?",
+                    answers: ["Better study habits, time management, and goal-setting", "Only physical strength", "Just sports skills", "Only social skills"],
+                    correct: 0,
+                    explanation: "Correct! The discipline, planning, and commitment required for regular exercise transfers to academic work, helping you develop better organizational and goal-achievement skills."
+                },
+                {
+                    question: "How does regular physical activity affect academic performance?",
+                    answers: ["Improves focus in class and academic achievement", "Makes students too tired to study", "Has no effect on schoolwork", "Only helps with PE grades"],
+                    correct: 0,
+                    explanation: "Correct! Research shows that physically active students often have better concentration, memory, and academic performance due to improved brain function from exercise."
+                },
+                {
+                    question: "What aspect of fitness helps maintain joint mobility and prevent injury?",
+                    answers: ["Flexibility through stretching and yoga", "Only cardiovascular exercise", "Just muscular strength", "Only coordination activities"],
+                    correct: 0,
+                    explanation: "Correct! Flexibility exercises keep your joints moving through their full range of motion, preventing stiffness and reducing injury risk during physical activities."
+                },
+                {
+                    question: "How does physical activity affect social relationships among students?",
+                    answers: ["Helps develop stronger relationships with peers", "Makes students more competitive and unfriendly", "Has no effect on social skills", "Only creates rivalry between students"],
+                    correct: 0,
+                    explanation: "Correct! Physical activities and sports provide opportunities for teamwork, communication, and shared experiences that often lead to stronger friendships and social connections."
+                }
+                ]
+            },
+            2: { // Fuel & Nutrition - Level 2 Quiz 3 (Ages 8-11)
+                quote: "Let food be thy medicine and medicine be thy food.",
+                author: "Hippocrates",
+                societyText: "Proper nutrition is like fuel for a high-performance engine—your body needs the right types and amounts of nutrients to function at its best during physical activity and daily life. Macronutrients are the main energy sources your body uses: carbohydrates provide quick energy for immediate activities, proteins build and repair muscles and tissues, and fats provide long-lasting energy and help your body absorb vitamins. Micronutrients, including vitamins and minerals, support hundreds of processes in your body—vitamin C helps your immune system fight infections, calcium builds strong bones and teeth, and iron helps carry oxygen in your blood. Hydration is critical because water makes up about 60% of your body weight and is involved in nearly every bodily function, from regulating temperature through sweating to transporting nutrients to cells. The timing of when you eat affects your energy levels and performance: eating complex carbohydrates 2-3 hours before exercise provides sustained energy, while consuming protein within 30 minutes after exercise helps muscles recover and grow stronger. Different foods provide different benefits—colorful fruits and vegetables contain antioxidants that help your body recover from exercise, whole grains provide steady energy release, and lean proteins support muscle development. Understanding nutrition labels helps you make informed choices about the foods you eat, looking at serving sizes, sugar content, and the balance of nutrients to fuel your active lifestyle effectively.",
+                questions: [
+                {
+                    question: "According to Hippocrates, what should food be for your body?",
+                    answers: ["Medicine that heals and nourishes", "Just something that tastes good", "Only a source of calories", "Something to eat when bored"],
+                    correct: 0,
+                    explanation: "Correct! Hippocrates understood that food has healing and nourishing properties—the right foods can prevent illness and optimize health."
+                },
+                {
+                    question: "What are the three main macronutrients and their primary functions?",
+                    answers: ["Carbohydrates for quick energy, proteins for building/repair, fats for long-lasting energy", "Only proteins matter for athletes", "All macronutrients do the same thing", "Vitamins, minerals, and water"],
+                    correct: 0,
+                    explanation: "Correct! Each macronutrient has specific roles: carbs fuel immediate activity, proteins build and repair tissues, and fats provide sustained energy and vitamin absorption."
+                },
+                {
+                    question: "What role do micronutrients like vitamins and minerals play in your body?",
+                    answers: ["Support hundreds of body processes including immunity and bone health", "Only provide energy for exercise", "Just make food taste better", "Have no important functions"],
+                    correct: 0,
+                    explanation: "Correct! Micronutrients are essential for immune function (vitamin C), bone health (calcium), oxygen transport (iron), and many other vital processes."
+                },
+                {
+                    question: "Why is proper hydration critical for your body's function?",
+                    answers: ["Water is involved in nearly every bodily function including temperature regulation", "Only prevents you from feeling thirsty", "Just helps you sweat during exercise", "Only matters during hot weather"],
+                    correct: 0,
+                    explanation: "Correct! Water regulates body temperature, transports nutrients, removes waste, lubricates joints, and is essential for virtually every cellular process."
+                },
+                {
+                    question: "When should you eat complex carbohydrates before exercise for optimal energy?",
+                    answers: ["2-3 hours before to provide sustained energy", "Right before starting exercise", "Only after exercise is finished", "It doesn't matter when you eat them"],
+                    correct: 0,
+                    explanation: "Correct! Eating complex carbs 2-3 hours before exercise allows time for digestion while providing steady energy throughout your activity."
+                },
+                {
+                    question: "What should you consume within 30 minutes after exercise and why?",
+                    answers: ["Protein to help muscles recover and grow stronger", "Only water to rehydrate", "Only carbohydrates for energy", "Nothing until your next regular meal"],
+                    correct: 0,
+                    explanation: "Correct! The 30-minute post-exercise window is optimal for protein consumption to maximize muscle repair and adaptation to training."
+                },
+                {
+                    question: "What benefits do colorful fruits and vegetables provide for active people?",
+                    answers: ["Antioxidants that help the body recover from exercise", "Only vitamins with no other benefits", "Just make meals look more appealing", "Only provide water content"],
+                    correct: 0,
+                    explanation: "Correct! The natural pigments in colorful produce contain antioxidants that help reduce inflammation and support recovery from physical activity."
+                },
+                {
+                    question: "Why are whole grains better than refined grains for sustained energy?",
+                    answers: ["They provide steady energy release over time", "They taste better than refined grains", "They contain more calories per serving", "They digest faster for quick energy"],
+                    correct: 0,
+                    explanation: "Correct! Whole grains contain fiber and complex carbohydrates that are digested slowly, providing steady blood sugar and sustained energy levels."
+                },
+                {
+                    question: "What should you look for when reading nutrition labels to make healthy choices?",
+                    answers: ["Serving sizes, sugar content, and nutrient balance", "Only the total number of calories", "Just the expiration date", "Only the brand name"],
+                    correct: 0,
+                    explanation: "Correct! Understanding serving sizes, sugar content, and the balance of macronutrients helps you make informed decisions about fueling your active lifestyle."
+                },
+                {
+                    question: "How do lean proteins specifically support young athletes?",
+                    answers: ["Support muscle development and tissue repair", "Only provide immediate energy for exercise", "Just help with weight management", "Only improve taste of meals"],
+                    correct: 0,
+                    explanation: "Correct! Lean proteins provide essential amino acids needed for building new muscle tissue and repairing damage from physical activity, crucial for growing athletes."
+                }
+                ]
+            },
+            3: { // Teamwork Counts - Level 2 Quiz 4 (Ages 8-11)
+                quote: "Talent wins games, but teamwork and intelligence win championships.",
+                author: "Michael Jordan",
+                societyText: "Successful teamwork requires understanding different roles, communication strategies, and collaborative problem-solving skills that extend far beyond sports into academic and social situations. In effective teams, each member has specific responsibilities that contribute to the group's overall success—some players might be natural leaders who organize and motivate, others might be skilled communicators who keep everyone informed, and some might be reliable supporters who consistently do their jobs well. Communication in teams involves multiple layers: verbal communication includes calling plays and giving encouragement, non-verbal communication includes body language and hand signals, and active listening means paying attention to teammates' ideas and feedback. Conflict resolution is a crucial team skill because disagreements naturally arise when people with different personalities and ideas work together toward common goals. Learning to address problems constructively—by listening to different viewpoints, finding compromises, and focusing on solutions rather than blame—helps teams stay united and focused. Trust develops through consistent actions over time: showing up prepared, giving maximum effort, supporting teammates during mistakes, and celebrating others' successes. The most successful teams understand that individual strengths become more powerful when combined with others' abilities, and that helping teammates improve actually makes the entire team stronger and more competitive.",
+                questions: [
+                {
+                    question: "According to Michael Jordan, what wins championships compared to just winning games?",
+                    answers: ["Teamwork and intelligence", "Only individual talent", "Just physical strength", "Only coaching strategies"],
+                    correct: 0,
+                    explanation: "Correct! Jordan learned that while talent can win individual games, sustained success requires teamwork and smart play from everyone."
+                },
+                {
+                    question: "What are some different roles that team members might naturally fill?",
+                    answers: ["Leaders who organize, communicators who inform, supporters who do their jobs consistently", "Everyone must do exactly the same thing", "Only the captain has a specific role", "Roles don't matter in team sports"],
+                    correct: 0,
+                    explanation: "Correct! Effective teams recognize and utilize different personality types and strengths—leadership, communication, and reliable support are all valuable contributions."
+                },
+                {
+                    question: "What are the three main types of communication important for team success?",
+                    answers: ["Verbal communication, non-verbal communication, and active listening", "Only shouting instructions loudly", "Just following the coach's directions", "Only using hand signals"],
+                    correct: 0,
+                    explanation: "Correct! Teams need spoken communication (calls, encouragement), body language/signals, and careful listening to coordinate effectively."
+                },
+                {
+                    question: "Why is conflict resolution an important team skill?",
+                    answers: ["Disagreements naturally arise and need constructive solutions", "Good teams never have any conflicts", "Conflicts always destroy team chemistry", "Only coaches should handle disagreements"],
+                    correct: 0,
+                    explanation: "Correct! When different personalities work together toward goals, disagreements happen—learning to resolve them constructively keeps teams focused and united."
+                },
+                {
+                    question: "What does constructive conflict resolution involve?",
+                    answers: ["Listening to viewpoints, finding compromises, focusing on solutions", "Avoiding all disagreements completely", "Always letting the loudest person win", "Blaming others for problems"],
+                    correct: 0,
+                    explanation: "Correct! Healthy conflict resolution means hearing different perspectives, finding middle ground, and working together toward solutions rather than assigning blame."
+                },
+                {
+                    question: "How is trust built between teammates over time?",
+                    answers: ["Showing up prepared, giving effort, supporting during mistakes, celebrating successes", "Only through winning games together", "By avoiding all mistakes completely", "Just by being friends outside of sports"],
+                    correct: 0,
+                    explanation: "Correct! Trust develops through consistent positive actions—reliability, effort, support during difficulties, and sharing in teammates' achievements."
+                },
+                {
+                    question: "How do individual strengths become more powerful in team settings?",
+                    answers: ["When combined with others' different abilities", "Only when everyone has identical skills", "Individual strengths don't matter in teams", "When one person dominates all decisions"],
+                    correct: 0,
+                    explanation: "Correct! Teams are strongest when different individual talents complement each other—speed + strategy + strength + communication = powerful combination."
+                },
+                {
+                    question: "Why does helping teammates improve actually benefit the entire team?",
+                    answers: ["It makes the whole team stronger and more competitive", "It only helps the individual being coached", "Helping others weakens your own performance", "Individual improvement doesn't affect team success"],
+                    correct: 0,
+                    explanation: "Correct! When you help a teammate get better, you're strengthening a link in the team chain—everyone's improvement raises the team's overall performance level."
+                },
+                {
+                    question: "What happens when teams focus on individual achievements over group success?",
+                    answers: ["It can weaken team unity and overall performance", "It always makes the team stronger", "Individual focus has no effect on teams", "It's the best strategy for winning"],
+                    correct: 0,
+                    explanation: "Correct! While individual excellence is important, teams perform best when personal achievements support rather than compete with team goals."
+                },
+                {
+                    question: "How do teamwork skills learned in sports transfer to other areas of life?",
+                    answers: ["They help in academic group projects and social situations", "They only apply to sports activities", "Teamwork skills don't transfer to other areas", "They only help with physical activities"],
+                    correct: 0,
+                    explanation: "Correct! Communication, cooperation, conflict resolution, and collaborative problem-solving are valuable in school projects, friendships, and future work situations."
+                }
+                ]
+            },
+            4: { // Values in Sport - Level 2 Quiz 5 (Ages 8-11)
+                quote: "The way to get started is to quit talking and begin doing.",
+                author: "Walt Disney",
+                societyText: "Character development through sports involves understanding that actions speak louder than words, and that true values are demonstrated through consistent behavior rather than just good intentions. Sports provide unique opportunities to practice important life values under pressure—when you're tired, frustrated, or facing difficult opponents, your true character emerges. Integrity means doing the right thing even when no one is watching, like calling your own fouls honestly or admitting when the ball went out of bounds off your hand. Perseverance involves continuing to try your best even when you're losing or when skills don't come easily—every champion has faced moments of doubt and difficulty. Respect includes treating opponents, teammates, officials, and equipment with care, understanding that competition can be fierce while still maintaining dignity and sportsmanship. Responsibility means taking ownership of your preparation, effort, and attitude, rather than blaming others when things don't go well. Courage isn't just physical bravery—it's also the mental strength to try new skills, stand up for teammates, and bounce back from mistakes or defeats. These values transfer from sports to school, family relationships, and future careers because they represent fundamental principles of good character that apply in all areas of life. The habits you develop in sports—showing up on time, working hard, supporting others, handling both success and failure gracefully—become part of who you are as a person.",
+                questions: [
+                {
+                    question: "According to Walt Disney, what is the way to get started on anything important?",
+                    answers: ["Quit talking and begin doing", "Make detailed plans first", "Wait for perfect conditions", "Ask others to do it for you"],
+                    correct: 0,
+                    explanation: "Correct! Disney understood that action is more important than words—character is built through doing, not just talking about values."
+                },
+                {
+                    question: "When does your true character emerge most clearly in sports?",
+                    answers: ["When you're tired, frustrated, or facing difficult opponents", "Only when you're winning easily", "Just during practice sessions", "Only when coaches are watching"],
+                    correct: 0,
+                    explanation: "Correct! Character is tested under pressure—how you behave when things are difficult reveals your true values and integrity."
+                },
+                {
+                    question: "What does integrity mean in sports situations?",
+                    answers: ["Doing the right thing even when no one is watching", "Only following rules when referees are present", "Winning at any cost", "Only being honest when it benefits you"],
+                    correct: 0,
+                    explanation: "Correct! Integrity means being honest and fair even when you could get away with cheating—like calling your own fouls or admitting mistakes."
+                },
+                {
+                    question: "What does perseverance involve in sports and life?",
+                    answers: ["Continuing to try your best even when facing difficulties", "Only trying when success is guaranteed", "Giving up when things get hard", "Only working when you feel motivated"],
+                    correct: 0,
+                    explanation: "Correct! Perseverance means pushing through challenges, setbacks, and moments of doubt—every successful person has faced and overcome difficulties."
+                },
+                {
+                    question: "How can you show respect in competitive sports?",
+                    answers: ["Treating opponents, teammates, officials, and equipment with care", "Only being nice to people on your own team", "Ignoring opponents completely", "Only respecting people who are better than you"],
+                    correct: 0,
+                    explanation: "Correct! Respect means treating everyone with dignity—you can compete fiercely while still maintaining sportsmanship and care for others."
+                },
+                {
+                    question: "What does taking responsibility mean in sports?",
+                    answers: ["Taking ownership of your preparation, effort, and attitude", "Blaming others when things go wrong", "Only accepting credit for successes", "Making excuses for poor performance"],
+                    correct: 0,
+                    explanation: "Correct! Responsibility means owning your choices and actions—your preparation, effort, and attitude are things you can control regardless of outcomes."
+                },
+                {
+                    question: "What types of courage are important in sports beyond just physical bravery?",
+                    answers: ["Mental strength to try new skills, stand up for teammates, and bounce back from mistakes", "Only the courage to tackle or hit hard", "Just the ability to ignore fear completely", "Only courage shown during games, not practice"],
+                    correct: 0,
+                    explanation: "Correct! Mental courage includes trying difficult skills, supporting others, learning from failures, and persisting through challenges—not just physical fearlessness."
+                },
+                {
+                    question: "Why do sports values transfer to other areas of life?",
+                    answers: ["They represent fundamental principles of good character that apply everywhere", "Sports values only matter in athletic situations", "Character doesn't matter outside of sports", "Values are different in school and family situations"],
+                    correct: 0,
+                    explanation: "Correct! Values like integrity, perseverance, respect, and responsibility are universal principles that help you succeed in school, relationships, and future careers."
+                },
+                {
+                    question: "What sports habits become part of your overall character?",
+                    answers: ["Showing up on time, working hard, supporting others, handling success and failure gracefully", "Only the physical skills you learn", "Just the rules of specific games", "Only competitive behaviors"],
+                    correct: 0,
+                    explanation: "Correct! The positive habits you practice in sports—reliability, effort, teamwork, and emotional maturity—become part of who you are in all situations."
+                },
+                {
+                    question: "How are actions more important than words in developing character?",
+                    answers: ["Character is built through consistent behavior, not just good intentions", "Words are more important than actions", "Intentions matter more than results", "Character doesn't require any actions"],
+                    correct: 0,
+                    explanation: "Correct! You develop character by repeatedly choosing to do the right thing—your actions over time create habits that define who you become as a person."
+                }
+                ]
+            },
+            5: { // Olympic Journey - Level 2 Quiz 6 (Ages 8-11)
+                quote: "The important thing in life is not the triumph but the struggle; the essential thing is not to have conquered but to have fought well.",
+                author: "Pierre de Coubertin",
+                societyText: "The Olympic Games represent humanity's highest aspirations for excellence, unity, and peaceful competition among nations. The Olympic motto 'Citius, Altius, Fortius - Communiter' (Faster, Higher, Stronger - Together) emphasizes both individual achievement and collective progress. The five Olympic rings symbolize the unity of five continents and the meeting of athletes from around the world in friendly competition. Olympic values extend beyond winning medals—they include excellence (doing your personal best), friendship (building understanding between people and cultures), and respect (for yourself, others, and the environment). The Paralympic Games demonstrate that physical challenges don't limit human potential, inspiring millions with stories of determination and achievement. Olympic athletes serve as role models not just for their physical abilities, but for their dedication, perseverance, and sportsmanship. The Olympic flame represents the light of spirit, knowledge, and life, connecting ancient Greek traditions with modern global unity. Host cities invest in infrastructure and cultural programs that benefit communities long after the Games end. The Olympic Truce tradition calls for peaceful resolution of conflicts during the Games, showing sport's power to unite rather than divide. Young people can embody Olympic ideals in their daily lives through fair play, respect for diversity, pursuit of personal excellence, and commitment to making their communities better places for everyone.",
+                questions: [
+                {
+                    question: "According to Pierre de Coubertin, what is more important than triumph in life?",
+                    answers: ["The struggle and fighting well", "Only winning at all costs", "Avoiding all challenges", "Getting recognition from others"],
+                    correct: 0,
+                    explanation: "Correct! De Coubertin believed that the effort, dedication, and character shown in striving for excellence matter more than just the final result."
+                },
+                {
+                    question: "What does the updated Olympic motto 'Citius, Altius, Fortius - Communiter' emphasize?",
+                    answers: ["Both individual achievement and collective progress", "Only individual competition", "Just physical strength", "Only team sports"],
+                    correct: 0,
+                    explanation: "Correct! The addition of 'Communiter' (Together) emphasizes that while we strive for personal excellence, we achieve more when we work together and support each other."
+                },
+                {
+                    question: "What do the five Olympic rings symbolize?",
+                    answers: ["Unity of five continents and global friendship through sport", "Just the five original sports", "Only the founding countries", "The number of Olympic Games held"],
+                    correct: 0,
+                    explanation: "Correct! The interlocking rings represent the coming together of athletes from all continents in peaceful competition and mutual understanding."
+                },
+                {
+                    question: "What are the three main Olympic values beyond just winning?",
+                    answers: ["Excellence, friendship, and respect", "Only strength, speed, and skill", "Just winning, fame, and money", "Only competition, training, and medals"],
+                    correct: 0,
+                    explanation: "Correct! Excellence means doing your personal best, friendship builds understanding between cultures, and respect honors yourself, others, and the environment."
+                },
+                {
+                    question: "What important message do the Paralympic Games demonstrate?",
+                    answers: ["Physical challenges don't limit human potential", "Only certain people can be athletes", "Disabilities prevent athletic achievement", "Competition is only for the physically perfect"],
+                    correct: 0,
+                    explanation: "Correct! Paralympic athletes inspire the world by showing that determination, skill, and heart matter more than physical limitations—human potential is limitless."
+                },
+                {
+                    question: "Why do Olympic athletes serve as role models beyond their physical abilities?",
+                    answers: ["For their dedication, perseverance, and sportsmanship", "Only because they win medals", "Just for their physical appearance", "Only for their wealth and fame"],
+                    correct: 0,
+                    explanation: "Correct! Olympic athletes inspire others through their work ethic, resilience in facing challenges, and the character they show in both victory and defeat."
+                },
+                {
+                    question: "What does the Olympic flame represent?",
+                    answers: ["The light of spirit, knowledge, and life", "Just a pretty ceremony", "Only ancient Greek history", "Just the start of competition"],
+                    correct: 0,
+                    explanation: "Correct! The flame symbolizes the enlightenment that comes from striving for excellence and the eternal human spirit that connects past, present, and future."
+                },
+                {
+                    question: "How do Olympic host cities benefit beyond just hosting the Games?",
+                    answers: ["Infrastructure and cultural programs that benefit communities long-term", "Only temporary tourism money", "Just international attention", "Only new sports facilities"],
+                    correct: 0,
+                    explanation: "Correct! Host cities often gain improved transportation, housing, cultural facilities, and international connections that benefit residents for decades after the Games."
+                },
+                {
+                    question: "What is the Olympic Truce tradition and why is it important?",
+                    answers: ["Calls for peaceful resolution of conflicts, showing sport's power to unite", "Just a pause in competition", "Only affects Olympic athletes", "Has no real-world impact"],
+                    correct: 0,
+                    explanation: "Correct! The Olympic Truce demonstrates that sport can bring people together peacefully, even when their countries have political disagreements."
+                },
+                {
+                    question: "How can young people embody Olympic ideals in daily life?",
+                    answers: ["Through fair play, respect for diversity, personal excellence, and community service", "Only by becoming professional athletes", "Just by watching the Olympics on TV", "Only during sports competitions"],
+                    correct: 0,
+                    explanation: "Correct! Olympic values apply to school, friendships, and community involvement—you can pursue excellence, show respect, and build friendships in all areas of life."
+                }
+                ]
+            },
+            6: { // Know Your Body - Level 2 Quiz 7 (Ages 8-11)
+                quote: "The human body is the best picture of the human soul.",
+                author: "Ludwig Wittgenstein",
+                societyText: "Understanding your body's complex systems helps you make informed decisions about health, fitness, and performance throughout your life. The cardiovascular system includes your heart, blood vessels, and blood—your heart beats about 100,000 times per day, pumping blood that carries oxygen and nutrients to every cell while removing waste products. The respiratory system works closely with your cardiovascular system, bringing oxygen into your lungs and removing carbon dioxide, with your breathing rate automatically adjusting based on your activity level and oxygen needs. Your muscular system contains over 600 muscles that work in coordinated patterns—when one muscle contracts to create movement, opposing muscles must relax, and your brain coordinates these complex actions without conscious thought. The skeletal system provides structure and protection while also producing blood cells in bone marrow and storing important minerals like calcium and phosphorus. Your nervous system processes information at incredible speeds, with your brain containing about 86 billion neurons that communicate through electrical and chemical signals. The digestive system breaks down food into nutrients your body can use, with the process taking 24-72 hours from eating to elimination. Understanding how these systems work together helps you appreciate why proper nutrition, regular exercise, adequate sleep, and stress management are essential for optimal health and performance. Your body is constantly adapting to the demands you place on it, becoming stronger with appropriate challenges and weaker without sufficient stimulation.",
+                questions: [
+                {
+                    question: "According to Ludwig Wittgenstein, what does the human body represent?",
+                    answers: ["The best picture of the human soul", "Just a machine for movement", "Only a collection of organs", "Something separate from the mind"],
+                    correct: 0,
+                    explanation: "Correct! Wittgenstein understood that your physical body reflects your inner self—how you care for and use your body shows your values and character."
+                },
+                {
+                    question: "How many times does your heart beat per day, and what does it accomplish?",
+                    answers: ["About 100,000 times, pumping blood that carries oxygen and nutrients to every cell", "Only 1,000 times per day", "Just pumps blood with no other function", "Only works during exercise"],
+                    correct: 0,
+                    explanation: "Correct! Your heart is an incredibly hardworking muscle that beats continuously, delivering life-sustaining oxygen and nutrients while removing waste from every cell in your body."
+                },
+                {
+                    question: "How do your respiratory and cardiovascular systems work together?",
+                    answers: ["Respiratory brings in oxygen, cardiovascular delivers it throughout the body", "They work completely independently", "Only the respiratory system matters for exercise", "They only work during conscious breathing"],
+                    correct: 0,
+                    explanation: "Correct! Your lungs capture oxygen from air and transfer it to blood, then your heart pumps that oxygen-rich blood to muscles and organs that need it for energy."
+                },
+                {
+                    question: "How does your brain coordinate muscle movement without conscious thought?",
+                    answers: ["It automatically coordinates opposing muscles to contract and relax in patterns", "You must consciously control every muscle", "Muscles work independently without brain control", "Only some muscles are controlled by the brain"],
+                    correct: 0,
+                    explanation: "Correct! Your brain constantly coordinates complex muscle patterns—when you walk, hundreds of muscles work together automatically without you thinking about each one."
+                },
+                {
+                    question: "What important functions does your skeletal system perform beyond providing structure?",
+                    answers: ["Produces blood cells in bone marrow and stores minerals like calcium", "Only provides shape for your body", "Just protects organs from injury", "Only grows during childhood"],
+                    correct: 0,
+                    explanation: "Correct! Your bones are living tissues that manufacture blood cells, store essential minerals, and constantly remodel themselves throughout your life."
+                },
+                {
+                    question: "How many neurons are in your brain, and how do they communicate?",
+                    answers: ["About 86 billion neurons that use electrical and chemical signals", "Only a few thousand neurons", "Just through electrical signals", "They don't actually communicate with each other"],
+                    correct: 0,
+                    explanation: "Correct! Your brain contains an incredible network of neurons that communicate through both electrical impulses and chemical messengers called neurotransmitters."
+                },
+                {
+                    question: "How long does the complete digestive process take from eating to elimination?",
+                    answers: ["24-72 hours depending on the food and individual", "Only 1-2 hours total", "Just 30 minutes for all foods", "The same amount of time for everyone"],
+                    correct: 0,
+                    explanation: "Correct! Digestion is a complex process that varies based on what you eat, your individual metabolism, and other factors—your body works continuously to extract nutrients."
+                },
+                {
+                    question: "Why is understanding body systems important for health decisions?",
+                    answers: ["It helps you appreciate why nutrition, exercise, sleep, and stress management are essential", "Body knowledge has no practical applications", "Only doctors need to understand body systems", "Understanding doesn't affect your health choices"],
+                    correct: 0,
+                    explanation: "Correct! When you understand how your body works, you can make informed decisions about lifestyle choices that support optimal health and performance."
+                },
+                {
+                    question: "How does your body adapt to the demands you place on it?",
+                    answers: ["Becomes stronger with appropriate challenges, weaker without sufficient stimulation", "Never changes regardless of activity", "Only gets stronger, never weaker", "Only responds to extreme demands"],
+                    correct: 0,
+                    explanation: "Correct! Your body follows the principle of adaptation—muscles grow stronger with resistance training, cardiovascular fitness improves with aerobic exercise, but abilities decline without use."
+                },
+                {
+                    question: "How does your breathing rate automatically adjust during different activities?",
+                    answers: ["Based on your activity level and oxygen needs", "It stays exactly the same all the time", "Only changes when you consciously control it", "Only increases during exercise, never decreases"],
+                    correct: 0,
+                    explanation: "Correct! Your respiratory system automatically adjusts breathing rate and depth based on your body's oxygen demands—faster during exercise, slower during rest."
+                }
+                ]
+            },
+            7: { // Safe Moves - Level 2 Quiz 8 (Ages 8-11)
+                quote: "Safety is something that happens between your ears, not something you hold in your hands.",
+                author: "Jeff Cooper",
+                societyText: "Safety in physical education and sports requires understanding risk assessment, injury prevention strategies, and emergency response procedures that protect both yourself and others. Risk assessment involves identifying potential hazards before they cause harm—checking equipment for damage, recognizing environmental dangers like wet surfaces or obstacles, and understanding your own physical limitations and skill level. Proper warm-up and cool-down procedures are essential for injury prevention: warming up gradually increases heart rate, blood flow to muscles, and joint mobility, while cooling down helps your body return to resting state and prevents blood pooling. Understanding the difference between good pain (muscle fatigue from exercise) and bad pain (sharp, sudden, or persistent discomfort that signals potential injury) helps you make smart decisions about when to continue activity and when to stop. Protective equipment must fit properly and be appropriate for the specific activity—a helmet that's too loose provides little protection, and using basketball shoes for hiking increases ankle injury risk. Environmental awareness includes recognizing weather conditions that affect safety, understanding how dehydration and overheating occur, and knowing when conditions are too dangerous for outdoor activities. Emergency response knowledge includes basic first aid principles, knowing when and how to seek help, and understanding that quick, appropriate action can prevent minor injuries from becoming major problems. The most important safety tool is your brain—thinking ahead, making smart choices, and prioritizing long-term health over short-term thrills or peer pressure.",
+                questions: [
+                {
+                    question: "According to Jeff Cooper, where does safety really happen?",
+                    answers: ["Between your ears (in your mind)", "Only in your hands through equipment", "Just through following rules", "Only when adults are supervising"],
+                    correct: 0,
+                    explanation: "Correct! Cooper understood that safety starts with thinking—using your brain to assess risks, make smart decisions, and prioritize safety over convenience or peer pressure."
+                },
+                {
+                    question: "What does effective risk assessment involve before physical activities?",
+                    answers: ["Identifying potential hazards, checking equipment, and understanding your limitations", "Only looking for obvious dangers", "Just following what others are doing", "Only worrying about major injuries"],
+                    correct: 0,
+                    explanation: "Correct! Good risk assessment means systematically checking for equipment problems, environmental hazards, and honestly evaluating whether your skills match the activity's demands."
+                },
+                {
+                    question: "Why are proper warm-up procedures essential for injury prevention?",
+                    answers: ["Gradually increases heart rate, blood flow, and joint mobility", "Only makes you feel more energetic", "Just follows traditional routines", "Only matters for professional athletes"],
+                    correct: 0,
+                    explanation: "Correct! Warming up prepares your cardiovascular system, increases muscle temperature and flexibility, and mentally prepares you for more intense activity."
+                },
+                {
+                    question: "What's the difference between 'good pain' and 'bad pain' during exercise?",
+                    answers: ["Good pain is muscle fatigue, bad pain is sharp/sudden discomfort signaling injury", "All pain during exercise is normal", "Pain always means you should stop immediately", "There's no difference between types of pain"],
+                    correct: 0,
+                    explanation: "Correct! Learning to distinguish between normal muscle fatigue and pain that signals potential injury helps you exercise safely while still challenging yourself appropriately."
+                },
+                {
+                    question: "Why must protective equipment fit properly and match the specific activity?",
+                    answers: ["Improper fit provides little protection and wrong equipment increases injury risk", "Any protective equipment works for any activity", "Fit doesn't matter as long as you wear something", "Equipment is just for following rules"],
+                    correct: 0,
+                    explanation: "Correct! A loose helmet won't protect your head in a fall, and inappropriate footwear can cause slips, trips, or ankle injuries during specific activities."
+                },
+                {
+                    question: "What environmental factors should you consider for safe outdoor activities?",
+                    answers: ["Weather conditions, dehydration risk, and when conditions become too dangerous", "Only temperature", "Just whether it's raining", "Environmental factors don't affect safety"],
+                    correct: 0,
+                    explanation: "Correct! Environmental awareness includes temperature extremes, humidity, wind, precipitation, air quality, and understanding how these factors affect your body's ability to perform safely."
+                },
+                {
+                    question: "What should emergency response knowledge include for young athletes?",
+                    answers: ["Basic first aid, knowing when to seek help, and understanding that quick action prevents bigger problems", "Only calling 911 for everything", "Just ignoring minor injuries", "Only adults need emergency knowledge"],
+                    correct: 0,
+                    explanation: "Correct! Basic emergency knowledge helps you respond appropriately to different situations—some need immediate professional help, others need simple first aid to prevent worsening."
+                },
+                {
+                    question: "Why is your brain considered the most important safety tool?",
+                    answers: ["It allows thinking ahead, making smart choices, and prioritizing long-term health", "Only because it controls your body", "Just for remembering safety rules", "Brains don't actually affect safety"],
+                    correct: 0,
+                    explanation: "Correct! Your ability to think critically, assess risks, resist peer pressure, and make decisions based on long-term consequences is your best protection against injury."
+                },
+                {
+                    question: "What does proper cool-down help prevent after exercise?",
+                    answers: ["Helps body return to resting state and prevents blood pooling", "Only reduces sweating", "Just follows exercise traditions", "Cool-down has no real benefits"],
+                    correct: 0,
+                    explanation: "Correct! Cool-down gradually reduces heart rate, helps blood return from muscles to vital organs, and can reduce muscle soreness and stiffness."
+                },
+                {
+                    question: "How should you balance safety with challenging yourself in physical activities?",
+                    answers: ["Prioritize long-term health while still pursuing appropriate challenges", "Always choose the safest, easiest option", "Ignore safety to push your limits", "Safety and challenge can't coexist"],
+                    correct: 0,
+                    explanation: "Correct! Smart athletes take calculated risks that challenge them appropriately while using safety measures to minimize the chance of injury that could end their participation."
+                }
+                ]
+            },
+            8: { // Fair Play First - Level 2 Quiz 9 (Ages 8-11)
+                quote: "It's not whether you get knocked down; it's whether you get up.",
+                author: "Vince Lombardi",
+                societyText: "Fair play in sports involves understanding that ethical behavior and moral reasoning are more important than winning at any cost. True sportsmanship means competing with maximum effort while maintaining respect for opponents, teammates, officials, and the game itself. Ethical decision-making in sports often involves choosing between what's easy and what's right—like admitting when a ball touches you before going out of bounds, even if the referee didn't see it. Moral courage means standing up for what's right even when it's difficult or unpopular, such as defending a teammate who's being bullied or refusing to participate in unsportsmanlike behavior. Understanding different perspectives helps build empathy—recognizing that opponents are trying just as hard as you are, that officials make mistakes because they're human, and that everyone deserves to be treated with dignity regardless of skill level. Fair play includes emotional self-regulation—managing frustration, disappointment, and anger in constructive ways rather than taking negative emotions out on others. The concept of 'playing the game the right way' means following both written rules and unwritten codes of conduct that preserve the spirit of competition. Restorative justice in sports focuses on making things right when mistakes happen, rather than just punishment—apologizing sincerely, making amends, and learning from errors. Fair play principles transfer to academic integrity, friendship loyalty, and future workplace ethics because they represent fundamental values about how people should treat each other in all competitive and collaborative situations.",
+                questions: [
+                {
+                    question: "According to Vince Lombardi, what matters more than getting knocked down?",
+                    answers: ["Whether you get up", "Avoiding all challenges", "Never falling in the first place", "Blaming others for knocking you down"],
+                    correct: 0,
+                    explanation: "Correct! Lombardi understood that resilience and the ability to recover from setbacks are more important than avoiding all difficulties—character is shown in how you respond to adversity."
+                },
+                {
+                    question: "What does true sportsmanship involve beyond just following rules?",
+                    answers: ["Competing with maximum effort while maintaining respect for everyone involved", "Only trying to win at any cost", "Just being nice when you're winning", "Only respecting people on your own team"],
+                    correct: 0,
+                    explanation: "Correct! True sportsmanship means giving your best effort while treating opponents, teammates, officials, and the game itself with dignity and respect."
+                },
+                {
+                    question: "What kind of ethical decision-making does fair play often require?",
+                    answers: ["Choosing between what's easy and what's right", "Always taking the easiest path", "Only making decisions that benefit you", "Letting others make all ethical choices"],
+                    correct: 0,
+                    explanation: "Correct! Fair play often means doing the right thing even when it's harder or might hurt your chances of winning—like admitting your own mistakes honestly."
+                },
+                {
+                    question: "What does moral courage mean in sports situations?",
+                    answers: ["Standing up for what's right even when it's difficult or unpopular", "Only being brave during physical challenges", "Following the crowd to avoid conflict", "Only speaking up when it benefits you"],
+                    correct: 0,
+                    explanation: "Correct! Moral courage means defending teammates from bullying, refusing to cheat, and doing the right thing even when others might criticize you for it."
+                },
+                {
+                    question: "How does understanding different perspectives build empathy in sports?",
+                    answers: ["Recognizing that opponents try hard, officials are human, and everyone deserves dignity", "Only caring about your own team's perspective", "Assuming opponents don't try as hard as you", "Believing officials are always wrong"],
+                    correct: 0,
+                    explanation: "Correct! Empathy means understanding that everyone involved in sports—opponents, officials, teammates—has feelings, makes mistakes, and deserves to be treated with respect."
+                },
+                {
+                    question: "What does emotional self-regulation mean in competitive sports?",
+                    answers: ["Managing frustration and anger in constructive ways rather than taking it out on others", "Never feeling any emotions during competition", "Always expressing anger whenever you feel it", "Only controlling emotions when adults are watching"],
+                    correct: 0,
+                    explanation: "Correct! Emotional self-regulation means feeling normal competitive emotions but choosing how to express them in ways that don't hurt others or damage relationships."
+                },
+                {
+                    question: "What does 'playing the game the right way' include beyond written rules?",
+                    answers: ["Following unwritten codes of conduct that preserve the spirit of competition", "Only following rules when convenient", "Just doing whatever helps you win", "Only caring about official rules"],
+                    correct: 0,
+                    explanation: "Correct! 'The right way' includes both official rules and unwritten traditions of respect, fairness, and sportsmanship that keep competition positive and meaningful."
+                },
+                {
+                    question: "What does restorative justice focus on when mistakes happen in sports?",
+                    answers: ["Making things right through apologies, amends, and learning from errors", "Only punishing people who make mistakes", "Ignoring mistakes and moving on", "Getting revenge when wronged"],
+                    correct: 0,
+                    explanation: "Correct! Restorative justice emphasizes repairing relationships and learning from mistakes rather than just punishment—it helps people grow and communities heal."
+                },
+                {
+                    question: "How do fair play principles transfer to other areas of life?",
+                    answers: ["They represent fundamental values about how people should treat each other in all situations", "Fair play only applies to sports", "Different values apply in school and work", "Competitive situations don't need ethical behavior"],
+                    correct: 0,
+                    explanation: "Correct! The values of honesty, respect, responsibility, and fairness that you practice in sports help you succeed ethically in school, friendships, and future careers."
+                },
+                {
+                    question: "Why is fair play considered more important than winning?",
+                    answers: ["Because ethical behavior and character development have lasting value beyond any single game", "Winning is actually more important than fair play", "Fair play and winning are equally important", "Fair play only matters in youth sports"],
+                    correct: 0,
+                    explanation: "Correct! Games end and scores are forgotten, but the character you develop through fair play—integrity, respect, resilience—stays with you throughout life."
+                }
+                ]
+            },
+            9: { // PE in Society - Level 2 Quiz 10 (Ages 8-11)
+                quote: "Education is the most powerful weapon which you can use to change the world.",
+                author: "Nelson Mandela",
+                societyText: "Physical education plays a crucial role in developing well-rounded citizens who contribute positively to society through health, character, and social skills. PE programs in schools help address public health challenges by establishing lifelong habits of physical activity that reduce healthcare costs and improve quality of life for entire communities. The social benefits of PE extend beyond individual fitness—team sports teach cooperation, leadership, and conflict resolution skills that are essential for democratic participation and community building. PE promotes inclusion and equity by providing opportunities for students of all backgrounds, abilities, and economic circumstances to participate in meaningful physical activities together. Research shows that students who participate in quality PE programs demonstrate better academic performance, improved behavior, and stronger social connections with peers from diverse backgrounds. PE contributes to mental health by providing stress relief, building self-confidence, and teaching coping strategies that help young people navigate challenges in school and life. The economic impact of PE includes reduced healthcare costs, increased productivity from healthier workers, and the development of sports and recreation industries that provide employment opportunities. PE programs also preserve and transmit cultural traditions through traditional games, dances, and sports that connect students to their heritage while building appreciation for diversity. Environmental awareness developed through outdoor PE activities helps create citizens who understand the importance of protecting natural spaces for future generations. The leadership skills, teamwork abilities, and resilience developed in PE transfer to civic engagement, volunteer service, and professional success that strengthen communities and society as a whole.",
+                questions: [
+                {
+                    question: "According to Nelson Mandela, what is the most powerful weapon to change the world?",
+                    answers: ["Education", "Physical strength", "Money", "Technology"],
+                    correct: 0,
+                    explanation: "Correct! Mandela understood that education—including physical education—develops the knowledge, skills, and character needed to create positive change in society."
+                },
+                {
+                    question: "How do PE programs help address public health challenges?",
+                    answers: ["By establishing lifelong habits that reduce healthcare costs and improve community quality of life", "Only by making students temporarily fit", "Just by teaching sports skills", "PE has no effect on public health"],
+                    correct: 0,
+                    explanation: "Correct! When students develop healthy habits in PE, they're more likely to stay active as adults, reducing diseases like obesity, diabetes, and heart disease that cost society billions of dollars."
+                },
+                {
+                    question: "What social skills does PE teach that are essential for democratic participation?",
+                    answers: ["Cooperation, leadership, and conflict resolution", "Only individual competition", "Just following orders", "Only physical skills"],
+                    correct: 0,
+                    explanation: "Correct! PE teaches students to work together, lead groups, and resolve disagreements peacefully—skills that are essential for participating in democratic communities and workplaces."
+                },
+                {
+                    question: "How does PE promote inclusion and equity in schools?",
+                    answers: ["Provides opportunities for students of all backgrounds and abilities to participate together", "Only serves the most athletic students", "Separates students by ability level", "Excludes students with different backgrounds"],
+                    correct: 0,
+                    explanation: "Correct! Quality PE programs adapt activities so students of different skill levels, economic backgrounds, and physical abilities can all participate meaningfully and learn together."
+                },
+                {
+                    question: "What does research show about students who participate in quality PE programs?",
+                    answers: ["Better academic performance, improved behavior, and stronger social connections", "Only improved physical fitness", "No effects beyond PE class", "Only benefits for naturally athletic students"],
+                    correct: 0,
+                    explanation: "Correct! Research consistently shows that PE participation correlates with better grades, fewer discipline problems, and stronger friendships across diverse student populations."
+                },
+                {
+                    question: "How does PE contribute to mental health and emotional development?",
+                    answers: ["Provides stress relief, builds confidence, and teaches coping strategies", "Only improves physical health", "Has no effect on mental health", "Only benefits students who are already confident"],
+                    correct: 0,
+                    explanation: "Correct! Physical activity releases endorphins that reduce stress, achieving goals builds self-confidence, and overcoming challenges teaches resilience for life's difficulties."
+                },
+                {
+                    question: "What economic impacts does PE have on society?",
+                    answers: ["Reduced healthcare costs, increased productivity, and sports industry employment", "Only costs money with no benefits", "Just the cost of equipment and facilities", "No economic impact at all"],
+                    correct: 0,
+                    explanation: "Correct! Healthier populations need less medical care, healthy workers are more productive, and sports/recreation industries provide millions of jobs worldwide."
+                },
+                {
+                    question: "How does PE help preserve and transmit cultural traditions?",
+                    answers: ["Through traditional games, dances, and sports that connect students to heritage", "PE has nothing to do with culture", "Only through modern sports", "By avoiding all cultural activities"],
+                    correct: 0,
+                    explanation: "Correct! PE programs often include traditional activities that help students learn about their own culture and appreciate the diversity of others' cultural traditions."
+                },
+                {
+                    question: "How does outdoor PE help develop environmental awareness?",
+                    answers: ["Creates citizens who understand the importance of protecting natural spaces", "Outdoor activities have no environmental connection", "Only teaches sports skills", "Has no effect on environmental attitudes"],
+                    correct: 0,
+                    explanation: "Correct! Students who enjoy outdoor activities in PE often become adults who value and protect natural environments for future generations to enjoy."
+                },
+                {
+                    question: "How do PE skills transfer to civic engagement and community service?",
+                    answers: ["Leadership, teamwork, and resilience strengthen communities and society", "PE skills only apply to sports", "Physical skills don't transfer to other areas", "PE has no connection to citizenship"],
+                    correct: 0,
+                    explanation: "Correct! The ability to lead groups, work with diverse people, and persist through challenges—learned in PE—helps people become effective volunteers, community leaders, and engaged citizens."
+                }
+                ]
+            }
+        };
+
+        // Login System
+        document.getElementById('login-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            if (username && password) {
+                currentUser = username;
+                document.getElementById('welcome-text').textContent = `Welcome, ${username}!`;
+                updateDashboard();
+                showScreen('dashboard-screen');
+            }
+        });
+
+        // Screen Navigation
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        // Update Dashboard
+        function updateDashboard() {
+            const totalCompleted = Object.values(userProgress).reduce((sum, level) => sum + level.completed.length, 0);
+            const totalQuizzes = 60; // 6 levels × 10 quizzes each
+            const overallProgress = Math.round((totalCompleted / totalQuizzes) * 100);
+            
+            document.getElementById('overall-progress').textContent = `${overallProgress}%`;
+            document.getElementById('quiz-progress-bar').style.width = `${(userProgress.level2.completed.length / 10) * 100}%`;
+            document.getElementById('quiz-progress-text').textContent = `Level 2: ${userProgress.level2.completed.length} of 10 quizzes completed`;
+            document.getElementById('total-quizzes').textContent = totalCompleted;
+            
+            if (userProgress.level2.scores.length > 0) {
+                const avgScore = Math.round(userProgress.level2.scores.reduce((a, b) => a + b, 0) / userProgress.level2.scores.length);
+                document.getElementById('avg-score').textContent = `${avgScore}%`;
+            }
+            
+            document.getElementById('next-unlock').textContent = 10 - userProgress.level2.completed.length;
+        }
+
+        // Initialize Sports Grid
+        function initializeSportsGrid() {
+            const sportsGrid = document.getElementById('sports-grid');
+            sportsGrid.innerHTML = '';
+            
+            sportsData.forEach(sport => {
+                const sportCard = document.createElement('div');
+                sportCard.className = 'sport-card';
+                sportCard.innerHTML = `
+                    <div class="sport-icon">${sport.icon}</div>
+                    <div class="sport-name">${sport.name}</div>
+                `;
+                sportsGrid.appendChild(sportCard);
+            });
+        }
+
+        // Initialize Quiz Levels
+        function initializeQuizLevels() {
+            const container = document.getElementById('quiz-levels-container');
+            container.innerHTML = '';
+            
+            yearLevels.forEach((yearLevel, index) => {
+                const levelButton = document.createElement('div');
+                const isUnlocked = true; // All levels are now unlocked
+                const completed = userProgress[yearLevel.id].completed.length;
+                
+                levelButton.className = `level-button ${!isUnlocked ? 'locked' : ''}`;
+                levelButton.innerHTML = `
+                    <div class="level-number">${yearLevel.icon}</div>
+                    <div>${yearLevel.name}</div>
+                    <small>${yearLevel.ages}</small>
+                    <small style="color: #666; margin-top: 5px;">${yearLevel.description}</small>
+                    <div class="level-progress">
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${(completed / 10) * 100}%"></div>
+                        </div>
+                        <small>${completed}/10 completed</small>
+                    </div>
+                    ${!isUnlocked ? '<div class="lock-icon">🔒</div>' : ''}
+                `;
+                
+                if (isUnlocked) {
+                    levelButton.onclick = () => showQuizTopics(yearLevel.id);
+                }
+                
+                container.appendChild(levelButton);
+            });
+        }
+
+        // Show Quiz Topics
+        function showQuizTopics(levelId) {
+            currentLevel = levelId;
+            const level = yearLevels.find(l => l.id === levelId);
+            document.getElementById('quiz-level-title').innerHTML = `${level.icon} ${level.name} Quizzes`;
+            
+            const topicsGrid = document.getElementById('quiz-topics-grid');
+            topicsGrid.innerHTML = '';
+            
+            quizTopics.forEach((topic, index) => {
+                const isUnlocked = true; // All topics are now unlocked within each level
+                const isCompleted = userProgress[levelId].completed.includes(index);
+                const score = isCompleted ? userProgress[levelId].scores[userProgress[levelId].completed.indexOf(index)] : null;
+                
+                const topicCard = document.createElement('div');
+                topicCard.className = `quiz-topic-card ${!isUnlocked ? 'locked' : ''} ${isCompleted ? 'completed' : ''}`;
+                topicCard.innerHTML = `
+                    <div class="sport-icon">${topic.icon}</div>
+                    <div class="sport-name">${topic.name}</div>
+                    <small>${topic.description}</small>
+                    ${!isUnlocked ? '<div class="lock-icon">🔒</div>' : ''}
+                    ${isCompleted ? `<div class="quiz-score">${score}%</div>` : ''}
+                `;
+                
+                if (isUnlocked) {
+                    topicCard.onclick = () => startQuiz(index, topic.name);
+                }
+                
+                topicsGrid.appendChild(topicCard);
+            });
+            
+            showScreen('quiz-topics-screen');
+        }
+
+        // Start Quiz
+        function startQuiz(quizIndex, quizName) {
+            currentQuiz = quizIndex;
+            currentQuestion = 0;
+            quizAnswers = [];
+            
+            const quizData = quizContent[quizIndex];
+            if (quizData) {
+                document.getElementById('quote-text').textContent = `"${quizData.quote}"`;
+                document.getElementById('quote-author').textContent = `- ${quizData.author}`;
+                document.getElementById('society-text').textContent = quizData.societyText;
+            }
+            
+            document.getElementById('quiz-title').textContent = quizName;
+            
+            // Show intro, hide questions
+            document.getElementById('quiz-intro').style.display = 'block';
+            document.getElementById('quiz-header').style.display = 'none';
+            document.getElementById('quiz-questions').style.display = 'none';
+            
+            showScreen('quiz-screen');
+        }
+
+        // Start Quiz Questions
+        function startQuizQuestions() {
+            document.getElementById('quiz-intro').style.display = 'none';
+            document.getElementById('quiz-header').style.display = 'block';
+            document.getElementById('quiz-questions').style.display = 'block';
+            
+            // Reset button visibility
+            document.getElementById('start-quiz-btn').style.display = 'inline-block';
+            document.getElementById('return-quiz-btn').style.display = 'none';
+            
+            loadQuestion();
+        }
+
+        // Show Quiz Intro (for reviewing text during quiz)
+        function showQuizIntro() {
+            document.getElementById('quiz-intro').style.display = 'block';
+            document.getElementById('quiz-header').style.display = 'none';
+            document.getElementById('quiz-questions').style.display = 'none';
+            
+            // Show return button, hide start button
+            document.getElementById('start-quiz-btn').style.display = 'none';
+            document.getElementById('return-quiz-btn').style.display = 'inline-block';
+        }
+
+        // Return to Questions
+        function returnToQuestions() {
+            document.getElementById('quiz-intro').style.display = 'none';
+            document.getElementById('quiz-header').style.display = 'block';
+            document.getElementById('quiz-questions').style.display = 'block';
+            
+            // Show start button, hide return button
+            document.getElementById('start-quiz-btn').style.display = 'inline-block';
+            document.getElementById('return-quiz-btn').style.display = 'none';
+        }
+
+        // Load Question
+        function loadQuestion() {
+            const quizData = quizContent[currentQuiz];
+            const questions = quizData ? quizData.questions : generateSampleQuestions();
+            const question = questions[currentQuestion];
+            
+            document.getElementById('question-counter').textContent = `Question ${currentQuestion + 1} of 10`;
+            document.getElementById('quiz-progress-fill').style.width = `${((currentQuestion + 1) / 10) * 100}%`;
+            document.getElementById('question-text').textContent = question.question;
+            
+            const answersGrid = document.getElementById('answers-grid');
+            answersGrid.innerHTML = '';
+            
+            question.answers.forEach((answer, index) => {
+                const answerBtn = document.createElement('button');
+                answerBtn.className = 'answer-btn';
+                answerBtn.textContent = answer;
+                answerBtn.onclick = () => selectAnswer(index);
+                answersGrid.appendChild(answerBtn);
+            });
+            
+            document.getElementById('explanation').classList.remove('show');
+            document.getElementById('next-btn').disabled = true;
+        }
+
+        // Select Answer
+        function selectAnswer(selectedIndex) {
+            const quizData = quizContent[currentQuiz];
+            const questions = quizData ? quizData.questions : generateSampleQuestions();
+            const question = questions[currentQuestion];
+            const answerBtns = document.querySelectorAll('.answer-btn');
+            
+            // Disable all buttons
+            answerBtns.forEach(btn => btn.style.pointerEvents = 'none');
+            
+            // Show correct/incorrect
+            answerBtns.forEach((btn, index) => {
+                if (index === question.correct) {
+                    btn.classList.add('correct');
+                } else if (index === selectedIndex && index !== question.correct) {
+                    btn.classList.add('incorrect');
+                }
+            });
+            
+            // Store answer
+            quizAnswers.push({
+                question: currentQuestion,
+                selected: selectedIndex,
+                correct: question.correct,
+                isCorrect: selectedIndex === question.correct
+            });
+            
+            // Show explanation
+            document.getElementById('explanation-text').textContent = question.explanation;
+            document.getElementById('explanation').classList.add('show');
+            document.getElementById('next-btn').disabled = false;
+        }
+
+        // Next Question
+        function nextQuestion() {
+            currentQuestion++;
+            
+            if (currentQuestion < 10) {
+                loadQuestion();
+            } else {
+                showQuizResults();
+            }
+        }
+
+        // Show Quiz Results
+        function showQuizResults() {
+            const correctAnswers = quizAnswers.filter(a => a.isCorrect).length;
+            const score = Math.round((correctAnswers / 10) * 100);
+            
+            document.getElementById('final-score').textContent = `${score}%`;
+            document.getElementById('correct-answers').textContent = correctAnswers;
+            document.getElementById('incorrect-answers').textContent = 10 - correctAnswers;
+            
+            // Update feedback
+            let feedback = "";
+            if (score >= 90) feedback = "Excellent! You've mastered this topic!";
+            else if (score >= 80) feedback = "Great job! You have a strong understanding.";
+            else if (score >= 70) feedback = "Good work! Review the areas you missed.";
+            else feedback = "Keep studying! You'll improve with practice.";
+            
+            document.getElementById('results-feedback').textContent = feedback;
+            document.getElementById('performance-analysis').textContent = 
+                `You answered ${correctAnswers} out of 10 questions correctly. ${score >= 80 ? 'Excellent understanding of the key concepts!' : 'Focus on reviewing the explanations for questions you missed.'}`;
+            
+            // Update progress
+            if (!userProgress[currentLevel].completed.includes(currentQuiz)) {
+                userProgress[currentLevel].completed.push(currentQuiz);
+                userProgress[currentLevel].scores.push(score);
+                updateDashboard();
+            }
+            
+            showScreen('quiz-results-screen');
+        }
+
+        // Generate Sample Questions (fallback)
+        function generateSampleQuestions() {
+            return Array(10).fill().map((_, i) => ({
+                question: `Sample question ${i + 1} for this topic?`,
+                answers: ["Option A", "Option B", "Option C", "Option D"],
+                correct: Math.floor(Math.random() * 4),
+                explanation: "This is a sample explanation for the correct answer."
+            }));
+        }
+
+        // Initialize App
+        function initializeApp() {
+            initializeSportsGrid();
+            initializeQuizLevels();
+            updateDashboard();
+        }
+
+        // Initialize when page loads
+        window.addEventListener('load', initializeApp);
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98a0d72b65dfe708',t:'MTc1OTcwODQyOC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
