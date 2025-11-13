@@ -1,0 +1,4365 @@
+<!doctype html>
+<html lang="en">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PE Learning Hub</title>
+  <script src="/_sdk/data_sdk.js"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #667eea;
+            --bg-secondary: #764ba2;
+            --surface-light: #ffffff;
+            --surface-dark: #1a1a1a;
+            --text-light: #1a1a1a;
+            --text-dark: #ffffff;
+            --text-secondary: #666666;
+            --accent-primary: #667eea;
+            --accent-secondary: #28a745;
+            --house-red: #dc3545;
+            --house-green: #28a745;
+            --house-yellow: #ffc107;
+            --house-blue: #007bff;
+            --border-light: #e0e0e0;
+            --border-dark: #333333;
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #1a1a2e;
+            --bg-secondary: #16213e;
+            --surface-light: #0f3460;
+            --text-light: #ffffff;
+            --text-secondary: #cccccc;
+            --border-light: #333333;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            min-height: 100%;
+            overflow-x: hidden;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+
+        html {
+            height: 100%;
+        }
+
+        /* Authentication Screens */
+        .auth-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100%;
+            padding: 1rem;
+        }
+
+        .auth-card {
+            background: var(--surface-light);
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .auth-card h1 {
+            color: var(--text-light);
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            font-weight: 800;
+        }
+
+        .auth-card p {
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            font-size: 1rem;
+        }
+
+        .user-type-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .user-type-btn {
+            padding: 1.5rem;
+            border: 2px solid var(--border-light);
+            background: var(--surface-light);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .user-type-btn.active {
+            border-color: var(--accent-primary);
+            background: var(--accent-primary);
+            color: white;
+        }
+
+        .user-type-btn:hover {
+            border-color: var(--accent-primary);
+        }
+
+        .user-type-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .user-type-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            color: var(--text-light);
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 0.875rem;
+            border: 2px solid var(--border-light);
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+            background: var(--surface-light);
+            color: var(--text-light);
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .photo-upload {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .photo-preview {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            border: 3px solid var(--border-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: var(--text-secondary);
+            background: var(--surface-light);
+            overflow: hidden;
+        }
+
+        .photo-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .photo-buttons {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .photo-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            background: var(--surface-light);
+            color: var(--text-light);
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .photo-btn:hover {
+            border-color: var(--accent-primary);
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .house-selector {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .house-btn {
+            padding: 1rem;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .house-btn.red { background: var(--house-red); }
+        .house-btn.green { background: var(--house-green); }
+        .house-btn.yellow { background: var(--house-yellow); color: #333; }
+        .house-btn.blue { background: var(--house-blue); }
+
+        .house-btn.selected {
+            border-color: var(--text-light);
+            transform: scale(1.05);
+        }
+
+        .auth-btn {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, var(--accent-primary) 0%, var(--bg-secondary) 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .auth-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .auth-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .switch-auth {
+            margin-top: 1rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .switch-auth button {
+            background: none;
+            border: none;
+            color: var(--accent-primary);
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        /* Main App Layout */
+        .app-container {
+            display: none;
+            height: 100%;
+            flex-direction: column;
+        }
+
+        .header {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .header h1 {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .theme-toggle {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 0.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+        }
+
+        .theme-toggle:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: rgba(255,255,255,0.9);
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid white;
+            overflow: hidden;
+        }
+
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .user-details {
+            text-align: right;
+            font-size: 0.9rem;
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Navigation */
+        .nav-tabs {
+            display: flex;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            overflow-x: auto;
+        }
+
+        .nav-tab {
+            flex: 1;
+            min-width: 120px;
+            padding: 1rem;
+            background: none;
+            border: none;
+            color: rgba(255,255,255,0.7);
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+            white-space: nowrap;
+        }
+
+        .nav-tab.active {
+            color: white;
+            border-bottom-color: white;
+            background: rgba(255,255,255,0.1);
+        }
+
+        .nav-tab:hover {
+            color: white;
+            background: rgba(255,255,255,0.05);
+        }
+
+        /* Dashboard */
+        .dashboard {
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            height: 100%;
+            overflow-y: auto;
+        }
+
+        .dashboard-card {
+            background: var(--surface-light);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+        }
+
+        .dashboard-card h3 {
+            color: var(--text-light);
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+
+        /* Avatar Display */
+        .avatar-section {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .avatar-display {
+            width: 200px;
+            height: 300px;
+            margin: 0 auto 1rem;
+            position: relative;
+            background: linear-gradient(135deg, #f0f0f0 0%, #e0e0e0 100%);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .avatar-body {
+            width: 100%;
+            height: 80%;
+            background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+        }
+
+        .avatar-head {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 3px solid white;
+            overflow: hidden;
+            background: #f0f0f0;
+        }
+
+        .avatar-head img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .level-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1rem;
+        }
+
+        .level-badge {
+            background: var(--accent-primary);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        .house-points {
+            color: var(--text-light);
+            font-weight: 600;
+        }
+
+        /* Progress Rings */
+        .progress-ring {
+            width: 120px;
+            height: 120px;
+            margin: 1rem auto;
+            position: relative;
+        }
+
+        .progress-ring svg {
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);
+        }
+
+        .progress-ring circle {
+            fill: none;
+            stroke-width: 8;
+        }
+
+        .progress-ring .bg {
+            stroke: var(--border-light);
+        }
+
+        .progress-ring .progress {
+            stroke: var(--accent-primary);
+            stroke-linecap: round;
+            transition: stroke-dashoffset 0.5s ease;
+        }
+
+        .progress-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-light);
+        }
+
+        /* House Leaderboard */
+        .house-leaderboard {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .house-card {
+            padding: 1.5rem;
+            border-radius: 12px;
+            text-align: center;
+            color: white;
+            font-weight: 600;
+            position: relative;
+            border: 3px solid transparent;
+        }
+
+        .house-card.red { 
+            background: var(--house-red); 
+            border-color: #8B0000;
+        }
+        .house-card.green { 
+            background: var(--house-green); 
+            border-color: #006400;
+        }
+        .house-card.yellow { 
+            background: var(--house-yellow); 
+            color: #333; 
+            border-color: #B8860B;
+        }
+        .house-card.blue { 
+            background: var(--house-blue); 
+            border-color: #000080;
+        }
+
+        /* Colorblind-friendly patterns */
+        .house-card::before {
+            content: '';
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+        }
+
+        .house-card.red::before {
+            background: repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(255,255,255,0.3) 2px, rgba(255,255,255,0.3) 4px);
+        }
+
+        .house-card.green::before {
+            background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.3) 2px, rgba(255,255,255,0.3) 4px);
+        }
+
+        .house-card.yellow::before {
+            background: repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(0,0,0,0.3) 2px, rgba(0,0,0,0.3) 4px);
+        }
+
+        .house-card.blue::before {
+            background: repeating-linear-gradient(-45deg, transparent, transparent 2px, rgba(255,255,255,0.3) 2px, rgba(255,255,255,0.3) 4px);
+        }
+
+        .house-name {
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .house-total {
+            font-size: 2rem;
+            font-weight: 800;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 1rem;
+            background: rgba(0,0,0,0.05);
+            border-radius: 10px;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent-primary);
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+
+        /* Sports Module */
+        .sports-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1.5rem;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .sport-card {
+            background: var(--surface-light);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .sport-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+        }
+
+        .sport-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .sport-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-light);
+            margin-bottom: 0.5rem;
+        }
+
+        .sport-progress {
+            font-size: 0.9rem;
+            color: var(--accent-primary);
+            font-weight: 500;
+        }
+
+        /* Sport Detail View */
+        .sport-detail-container {
+            padding: 2rem;
+            overflow-y: auto;
+            height: 100%;
+        }
+
+        .sport-detail-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            color: white;
+        }
+
+        .sport-detail-header h2 {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .back-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .lesson-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .lesson-tile {
+            background: var(--surface-light);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            position: relative;
+        }
+
+        .lesson-tile:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+        }
+
+        .lesson-tile.assessment {
+            border: 3px solid var(--accent-primary);
+            background: linear-gradient(135deg, var(--surface-light) 0%, rgba(102, 126, 234, 0.1) 100%);
+        }
+
+        .lesson-tile.skills {
+            border: 3px solid var(--accent-secondary);
+            background: linear-gradient(135deg, var(--surface-light) 0%, rgba(40, 167, 69, 0.1) 100%);
+        }
+
+        .lesson-tile.history {
+            border: 3px solid var(--house-yellow);
+            background: linear-gradient(135deg, var(--surface-light) 0%, rgba(255, 193, 7, 0.1) 100%);
+        }
+
+        .lesson-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--accent-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .lesson-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--text-light);
+            margin-bottom: 0.5rem;
+        }
+
+        .lesson-type {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .lesson-status {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--accent-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.8rem;
+        }
+
+        .lesson-status.locked {
+            background: var(--text-secondary);
+        }
+
+        /* Assessment View */
+        .assessment-container, .skills-container, .history-container, .lesson-container {
+            padding: 2rem;
+            overflow-y: auto;
+            height: 100%;
+        }
+
+        .assessment-header, .skills-header, .history-header, .lesson-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            color: white;
+        }
+
+        .assessment-header h2, .skills-header h2, .history-header h2, .lesson-header h2 {
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        .assessment-content {
+            background: var(--surface-light);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .skill-assessment {
+            margin-bottom: 2rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .skill-assessment:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .skill-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--text-light);
+            margin-bottom: 0.5rem;
+        }
+
+        .skill-description {
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+
+        .skill-levels {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .skill-level {
+            padding: 1rem;
+            border: 2px solid var(--border-light);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .skill-level:hover {
+            border-color: var(--accent-primary);
+        }
+
+        .skill-level.selected {
+            border-color: var(--accent-primary);
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .level-number {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--accent-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .level-name {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-light);
+            margin-bottom: 0.5rem;
+        }
+
+        .level-description {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        .assessment-actions {
+            text-align: center;
+        }
+
+        .assessment-btn {
+            background: linear-gradient(135deg, var(--accent-primary) 0%, var(--bg-secondary) 100%);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .assessment-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .assessment-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Quiz Module */
+        .quiz-map-container {
+            padding: 2rem;
+            overflow-y: auto;
+            height: 100%;
+        }
+
+        .quiz-map-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: white;
+        }
+
+        .quiz-map-header h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .quiz-map-header p {
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            opacity: 0.9;
+        }
+
+        .quiz-stats {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            font-size: 1rem;
+        }
+
+        .quiz-stats strong {
+            color: var(--accent-primary);
+        }
+
+        .quiz-map {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 1rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .quiz-level {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            margin: 0 auto;
+        }
+
+        .quiz-level.available {
+            background: linear-gradient(135deg, var(--accent-primary) 0%, var(--bg-secondary) 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .quiz-level.completed {
+            background: linear-gradient(135deg, var(--accent-secondary) 0%, #20c997 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
+        }
+
+        .quiz-level.locked {
+            background: var(--text-secondary);
+            color: white;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .quiz-level:hover:not(.locked) {
+            transform: scale(1.1);
+        }
+
+        .quiz-level::after {
+            content: '';
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--accent-secondary);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+        }
+
+        .quiz-level.completed::after {
+            content: '✓';
+            display: flex;
+            color: white;
+        }
+
+        /* Quiz Level View */
+        .quiz-level-container {
+            padding: 2rem;
+            overflow-y: auto;
+            height: 100%;
+        }
+
+        .quiz-level-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            color: white;
+        }
+
+        .quiz-level-header h2 {
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        .quiz-progress {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .quiz-intro {
+            background: var(--surface-light);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .quiz-intro h3 {
+            color: var(--text-light);
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .quiz-intro p {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .author-citation {
+            font-style: italic;
+            color: var(--accent-primary);
+            font-weight: 600;
+        }
+
+        .quiz-question-container {
+            background: var(--surface-light);
+            border-radius: 16px;
+            padding: 2rem;
+        }
+
+        .question-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .question-topic {
+            background: var(--accent-primary);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 1rem;
+        }
+
+        .question-text {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+
+        .answer-options {
+            display: grid;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .answer-option {
+            padding: 1.5rem;
+            border: 2px solid var(--border-light);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .answer-option:hover {
+            border-color: var(--accent-primary);
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .answer-option.selected {
+            border-color: var(--accent-primary);
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .answer-option.correct {
+            border-color: var(--accent-secondary);
+            background: rgba(40, 167, 69, 0.1);
+        }
+
+        .answer-option.incorrect {
+            border-color: var(--house-red);
+            background: rgba(220, 53, 69, 0.1);
+        }
+
+        .answer-letter {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--accent-primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .answer-text {
+            flex: 1;
+            font-size: 1rem;
+            color: var(--text-light);
+            line-height: 1.5;
+        }
+
+        .feedback-container {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            border-radius: 12px;
+            display: none;
+        }
+
+        .feedback-container.show {
+            display: block;
+        }
+
+        .feedback-container.correct {
+            background: rgba(40, 167, 69, 0.1);
+            border: 2px solid var(--accent-secondary);
+        }
+
+        .feedback-container.incorrect {
+            background: rgba(220, 53, 69, 0.1);
+            border: 2px solid var(--house-red);
+        }
+
+        .feedback-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .feedback-title.correct {
+            color: var(--accent-secondary);
+        }
+
+        .feedback-title.incorrect {
+            color: var(--house-red);
+        }
+
+        .feedback-text {
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+
+        .quiz-actions {
+            text-align: center;
+            margin-top: 2rem;
+        }
+
+        .quiz-btn {
+            background: linear-gradient(135deg, var(--accent-primary) 0%, var(--bg-secondary) 100%);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            margin: 0 0.5rem;
+        }
+
+        .quiz-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .quiz-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .quiz-btn.secondary {
+            background: var(--text-secondary);
+        }
+
+        /* Loading States */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 200px;
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--border-light);
+            border-top: 4px solid var(--accent-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .header {
+                padding: 1rem;
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .user-info {
+                order: -1;
+            }
+
+            .dashboard {
+                grid-template-columns: 1fr;
+                padding: 1rem;
+            }
+
+            .sports-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                padding: 1rem;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .house-selector {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .house-leaderboard {
+                grid-template-columns: 1fr;
+            }
+
+            .avatar-display {
+                width: 150px;
+                height: 225px;
+            }
+        }
+
+        /* Teacher Dashboard Styles */
+        .teacher-dashboard {
+            padding: 2rem;
+            overflow-y: auto;
+            height: 100%;
+        }
+
+        .teacher-header {
+            color: white;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .teacher-header h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .teacher-header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .class-selector {
+            background: var(--surface-light);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .class-selector label {
+            font-weight: 600;
+            color: var(--text-light);
+        }
+
+        .class-selector select {
+            padding: 0.75rem;
+            border: 2px solid var(--border-light);
+            border-radius: 8px;
+            font-size: 1rem;
+            background: var(--surface-light);
+            color: var(--text-light);
+        }
+
+        .students-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .student-card {
+            background: var(--surface-light);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .student-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+        }
+
+        .student-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .student-photo {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 3px solid var(--border-light);
+            overflow: hidden;
+            background: var(--border-light);
+        }
+
+        .student-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .student-info h4 {
+            color: var(--text-light);
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .student-info p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .student-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .student-stat {
+            text-align: center;
+            padding: 0.75rem;
+            background: rgba(0,0,0,0.05);
+            border-radius: 8px;
+        }
+
+        .student-stat-value {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--accent-primary);
+        }
+
+        .student-stat-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .house-indicator {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-left: auto;
+        }
+
+        .house-indicator.red { background: var(--house-red); }
+        .house-indicator.green { background: var(--house-green); }
+        .house-indicator.yellow { background: var(--house-yellow); }
+        .house-indicator.blue { background: var(--house-blue); }
+
+        /* Assessment Management Styles */
+        .assessment-filters {
+            background: var(--surface-light);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .assessment-filters select {
+            padding: 0.75rem;
+            border: 2px solid var(--border-light);
+            border-radius: 8px;
+            font-size: 1rem;
+            background: var(--surface-light);
+            color: var(--text-light);
+            min-width: 150px;
+        }
+
+        .assessment-grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .assessment-item {
+            background: var(--surface-light);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .assessment-student-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .skills-evaluation {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .skill-input {
+            padding: 1rem;
+            border: 2px solid var(--border-light);
+            border-radius: 12px;
+        }
+
+        .skill-input label {
+            display: block;
+            font-weight: 600;
+            color: var(--text-light);
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .skill-input input {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid var(--border-light);
+            border-radius: 6px;
+            font-size: 1rem;
+            text-align: center;
+        }
+
+        .skill-input input:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+        }
+
+        .total-score {
+            text-align: center;
+            margin-top: 1rem;
+            padding: 1rem;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 12px;
+        }
+
+        .total-score-value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--accent-primary);
+        }
+
+        .save-assessment-btn {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--accent-secondary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .save-assessment-btn:hover {
+            background: #218838;
+        }
+
+        /* Analytics Styles */
+        .analytics-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .analytics-card {
+            background: var(--surface-light);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .analytics-card h3 {
+            color: var(--text-light);
+            font-size: 1.3rem;
+            margin-bottom: 1.5rem;
+            font-weight: 700;
+        }
+
+        .class-stat {
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background: rgba(0,0,0,0.05);
+            border-radius: 12px;
+        }
+
+        .class-name {
+            font-weight: 600;
+            color: var(--text-light);
+            margin-bottom: 0.5rem;
+        }
+
+        .class-average {
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .class-progress {
+            background: var(--border-light);
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(135deg, var(--accent-primary) 0%, var(--bg-secondary) 100%);
+            transition: width 0.3s ease;
+        }
+
+        .house-analytics {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        .house-stat {
+            padding: 1rem;
+            border-radius: 12px;
+            text-align: center;
+            color: white;
+        }
+
+        .house-stat.red { background: var(--house-red); }
+        .house-stat.green { background: var(--house-green); }
+        .house-stat.yellow { background: var(--house-yellow); color: #333; }
+        .house-stat.blue { background: var(--house-blue); }
+
+        .house-stat .house-name {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .house-stat .house-total {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 0.25rem;
+        }
+
+        .house-stat .house-students {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .completion-stats {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .completion-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .completion-item span {
+            min-width: 120px;
+            font-weight: 600;
+            color: var(--text-light);
+        }
+
+        .completion-bar {
+            flex: 1;
+            height: 24px;
+            background: var(--border-light);
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .completion-fill {
+            height: 100%;
+            background: linear-gradient(135deg, var(--accent-secondary) 0%, #20c997 100%);
+            transition: width 0.3s ease;
+        }
+
+        .completion-text {
+            position: absolute;
+            top: 50%;
+            right: 8px;
+            transform: translateY(-50%);
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-light);
+        }
+
+        /* Student Data Styles */
+        .student-search {
+            background: var(--surface-light);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .student-search input {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid var(--border-light);
+            border-radius: 8px;
+            font-size: 1rem;
+            background: var(--surface-light);
+            color: var(--text-light);
+        }
+
+        .student-search input:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+        }
+
+        .student-details-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+        }
+
+        .student-detail-card {
+            background: var(--surface-light);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .student-detail-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--border-light);
+        }
+
+        .student-detail-photo {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 3px solid var(--border-light);
+            overflow: hidden;
+        }
+
+        .student-detail-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .student-progress-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .student-progress-section h4 {
+            color: var(--text-light);
+            font-size: 1.1rem;
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+        }
+
+        .progress-items {
+            display: grid;
+            gap: 0.5rem;
+        }
+
+        .progress-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem;
+            background: rgba(0,0,0,0.05);
+            border-radius: 6px;
+        }
+
+        .progress-item-name {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .progress-item-value {
+            color: var(--accent-primary);
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        /* Reports Styles */
+        .report-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .report-card {
+            background: var(--surface-light);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .report-card h3 {
+            color: var(--text-light);
+            font-size: 1.3rem;
+            margin-bottom: 0.75rem;
+            font-weight: 700;
+        }
+
+        .report-card p {
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+            line-height: 1.5;
+        }
+
+        .report-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .report-controls select {
+            padding: 0.75rem;
+            border: 2px solid var(--border-light);
+            border-radius: 8px;
+            font-size: 1rem;
+            background: var(--surface-light);
+            color: var(--text-light);
+        }
+
+        .report-btn {
+            padding: 0.75rem 1rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, var(--accent-primary) 0%, var(--bg-secondary) 100%);
+            color: white;
+        }
+
+        .report-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .report-btn.secondary {
+            background: var(--text-secondary);
+        }
+
+        .report-preview {
+            background: var(--surface-light);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            min-height: 300px;
+        }
+
+        /* Responsive Design for Teacher Dashboard */
+        @media (max-width: 768px) {
+            .teacher-dashboard {
+                padding: 1rem;
+            }
+
+            .students-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .analytics-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .house-analytics {
+                grid-template-columns: 1fr;
+            }
+
+            .assessment-filters {
+                flex-direction: column;
+            }
+
+            .skills-evaluation {
+                grid-template-columns: 1fr;
+            }
+
+            .student-details-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .report-options {
+                grid-template-columns: 1fr;
+            }
+
+            .class-selector {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+
+        /* Hidden class */
+        .hidden {
+            display: none !important;
+        }
+
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+        }
+
+        .notification.success { background: var(--accent-secondary); }
+        .notification.error { background: var(--house-red); }
+        .notification.info { background: var(--accent-primary); }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+    </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
+ </head>
+ <body><!-- Authentication Screen -->
+  <div id="authScreen" class="auth-container">
+   <div class="auth-card">
+    <h1 id="appTitle">PE Learning Hub</h1>
+    <p id="welcomeMessage">Welcome to your PE Learning Journey</p><!-- User Type Selection -->
+    <div class="user-type-selector">
+     <div class="user-type-btn active" data-type="student">
+      <div class="user-type-icon">
+       🎓
+      </div>
+      <div class="user-type-title">
+       Student
+      </div>
+     </div>
+     <div class="user-type-btn" data-type="teacher">
+      <div class="user-type-icon">
+       👨‍🏫
+      </div>
+      <div class="user-type-title">
+       Teacher
+      </div>
+     </div>
+    </div><!-- Student Registration Form -->
+    <form id="studentForm" class="auth-form">
+     <div class="form-group"><label for="studentFullName">Full Name</label> <input type="text" id="studentFullName" required>
+     </div>
+     <div class="form-group"><label for="studentEmail">Email Address</label> <input type="email" id="studentEmail" required placeholder="student@school.edu">
+     </div>
+     <div class="form-row">
+      <div class="form-group"><label for="studentId">Student ID</label> <input type="text" id="studentId" required>
+      </div>
+      <div class="form-group"><label for="classGrade">Class/Grade</label> <select id="classGrade" required> <option value="">Select class/grade</option> <option value="Year 1C">Year 1C</option> <option value="Year 1H">Year 1H</option> <option value="Year 1I">Year 1I</option> <option value="Year 1S">Year 1S</option> <option value="Year 1J">Year 1J</option> <option value="Year 1B">Year 1B</option> <option value="Year 2C">Year 2C</option> <option value="Year 2H">Year 2H</option> <option value="Year 2I">Year 2I</option> <option value="Year 2S">Year 2S</option> <option value="Year 2J">Year 2J</option> <option value="Year 2B">Year 2B</option> <option value="Year 3C">Year 3C</option> <option value="Year 3H">Year 3H</option> <option value="Year 3I">Year 3I</option> <option value="Year 3S">Year 3S</option> <option value="Year 3J">Year 3J</option> <option value="Year 3B">Year 3B</option> <option value="Year 4C">Year 4C</option> <option value="Year 4H">Year 4H</option> <option value="Year 4I">Year 4I</option> <option value="Year 4S">Year 4S</option> <option value="Year 4J">Year 4J</option> <option value="Year 4B">Year 4B</option> <option value="Year 5C">Year 5C</option> <option value="Year 5H">Year 5H</option> <option value="Year 5I">Year 5I</option> <option value="Year 5S">Year 5S</option> <option value="Year 5J">Year 5J</option> <option value="Year 5B">Year 5B</option> <option value="Year 6C">Year 6C</option> <option value="Year 6H">Year 6H</option> <option value="Year 6I">Year 6I</option> <option value="Year 6S">Year 6S</option> <option value="Year 6J">Year 6J</option> <option value="Year 6B">Year 6B</option> <option value="Year 7C">Year 7C</option> <option value="Year 7H">Year 7H</option> <option value="Year 7I">Year 7I</option> <option value="Year 7S">Year 7S</option> <option value="Year 7J">Year 7J</option> <option value="Year 7B">Year 7B</option> <option value="Year 8C">Year 8C</option> <option value="Year 8H">Year 8H</option> <option value="Year 8I">Year 8I</option> <option value="Year 8S">Year 8S</option> <option value="Year 8J">Year 8J</option> <option value="Year 8B">Year 8B</option> <option value="Year 9C">Year 9C</option> <option value="Year 9H">Year 9H</option> <option value="Year 9I">Year 9I</option> <option value="Year 9S">Year 9S</option> <option value="Year 9J">Year 9J</option> <option value="Year 9B">Year 9B</option> <option value="Year 10C">Year 10C</option> <option value="Year 10H">Year 10H</option> <option value="Year 10I">Year 10I</option> <option value="Year 10S">Year 10S</option> <option value="Year 10J">Year 10J</option> <option value="Year 10B">Year 10B</option> <option value="Year 11C">Year 11C</option> <option value="Year 11H">Year 11H</option> <option value="Year 11I">Year 11I</option> <option value="Year 11S">Year 11S</option> <option value="Year 11J">Year 11J</option> <option value="Year 11B">Year 11B</option> <option value="Year 12C">Year 12C</option> <option value="Year 12H">Year 12H</option> <option value="Year 12I">Year 12I</option> <option value="Year 12S">Year 12S</option> <option value="Year 12J">Year 12J</option> <option value="Year 12B">Year 12B</option> <option value="Year 13C">Year 13C</option> <option value="Year 13H">Year 13H</option> <option value="Year 13I">Year 13I</option> <option value="Year 13S">Year 13S</option> <option value="Year 13J">Year 13J</option> <option value="Year 13B">Year 13B</option> </select>
+      </div>
+     </div>
+     <div class="form-group"><label for="school">School</label> <select id="school" required> <option value="Crescendo HELP International School">Crescendo HELP International School</option> <option value="request_new">Request to Add School</option> </select>
+     </div>
+     <div class="form-group"><label>Profile Photo (Face must be visible)</label>
+      <div class="photo-upload">
+       <div class="photo-preview" id="photoPreview">
+        📷
+       </div><input type="file" id="profilePhoto" accept="image/*" style="display: none;">
+       <video id="cameraPreview" style="display: none; width: 100px; height: 100px; border-radius: 50%; object-fit: cover;"></video>
+       <canvas id="photoCanvas" style="display: none;"></canvas>
+       <div class="photo-buttons"><button type="button" id="takePhotoBtn" class="photo-btn">📷 Take Photo</button> <button type="button" id="uploadBtn" class="photo-btn">📁 Upload Photo</button> <button type="button" id="captureBtn" class="photo-btn" style="display: none;">✅ Capture</button> <button type="button" id="retakeBtn" class="photo-btn" style="display: none;">🔄 Retake</button>
+       </div>
+      </div>
+     </div>
+     <div class="form-row">
+      <div class="form-group"><label>Gender</label> <select id="gender" required> <option value="">Select gender</option> <option value="male">Male</option> <option value="female">Female</option> </select>
+      </div>
+      <div class="form-group"><label>House Team</label>
+       <div class="house-selector">
+        <div class="house-btn red" data-house="red">
+         Red
+        </div>
+        <div class="house-btn green" data-house="green">
+         Green
+        </div>
+        <div class="house-btn yellow" data-house="yellow">
+         Yellow
+        </div>
+        <div class="house-btn blue" data-house="blue">
+         Blue
+        </div>
+       </div>
+      </div>
+     </div><button type="submit" class="auth-btn" id="studentSubmitBtn">Create Student Account</button>
+    </form><!-- Teacher Login Form -->
+    <form id="teacherForm" class="auth-form hidden">
+     <div class="form-group"><label for="teacherPrefix">Prefix</label> <select id="teacherPrefix" required> <option value="">Select prefix</option> <option value="Mr.">Mr.</option> <option value="Miss">Miss</option> </select>
+     </div>
+     <div class="form-group"><label for="teacherName">Full Name</label> <input type="text" id="teacherName" required>
+     </div>
+     <div class="form-group"><label for="teacherPassword">Password</label> <input type="password" id="teacherPassword" required> <small style="color: var(--text-secondary); font-size: 0.8rem;">First-time login: Chis1234</small>
+     </div><button type="submit" class="auth-btn" id="teacherSubmitBtn">Teacher Login</button>
+    </form>
+   </div>
+  </div><!-- Main Application -->
+  <div id="appContainer" class="app-container">
+   <header class="header">
+    <div class="header-left">
+     <h1 id="headerTitle">PE Learning Hub</h1><button class="theme-toggle" id="themeToggle">🌙</button>
+    </div>
+    <div class="user-info" id="userInfo">
+     <div class="user-avatar" id="headerAvatar"><img src="" alt="User Avatar" id="headerAvatarImg">
+     </div>
+     <div class="user-details">
+      <div>
+       Welcome, <span id="userName"></span>
+      </div>
+      <div>
+       <span id="userClass"></span> • <span id="userHouse"></span>
+      </div>
+     </div>
+    </div>
+   </header>
+   <nav class="nav-tabs"><button class="nav-tab active" data-tab="dashboard">🏠 Dashboard</button> <button class="nav-tab" data-tab="sports">🏃 Sports</button> <button class="nav-tab" data-tab="quiz">🧠 Quiz</button> <button class="nav-tab" data-tab="leaderboard">🏆 Leaderboard</button> <button class="nav-tab" data-tab="profile">⚙️ Profile</button>
+   </nav>
+   <main class="main-content"><!-- Dashboard Tab -->
+    <div id="dashboardTab" class="dashboard"><!-- Avatar & Level Section -->
+     <div class="dashboard-card">
+      <h3>Your Avatar</h3>
+      <div class="avatar-section">
+       <div class="avatar-display">
+        <div class="avatar-body" id="avatarBody">
+         💪
+        </div>
+        <div class="avatar-head" id="avatarHead"><img src="" alt="Avatar Head" id="avatarHeadImg">
+        </div>
+       </div>
+       <div class="level-info">
+        <div class="level-badge">
+         Level <span id="avatarLevel">1</span>
+        </div>
+        <div class="house-points">
+         <span id="housePointsDisplay">0</span> House Points
+        </div>
+       </div>
+      </div>
+     </div><!-- Overall Progress -->
+     <div class="dashboard-card">
+      <h3>Overall Progress</h3>
+      <div class="progress-ring">
+       <svg width="120" height="120"><circle class="bg" cx="60" cy="60" r="52" stroke-dasharray="326.73" stroke-dashoffset="0"></circle> <circle class="progress" cx="60" cy="60" r="52" stroke-dasharray="326.73" stroke-dashoffset="326.73" id="overallProgress"></circle>
+       </svg>
+       <div class="progress-text" id="overallProgressText">
+        0%
+       </div>
+      </div>
+      <div class="stats-grid">
+       <div class="stat-item">
+        <div class="stat-value" id="completedSports">
+         0
+        </div>
+        <div class="stat-label">
+         Sports Completed
+        </div>
+       </div>
+       <div class="stat-item">
+        <div class="stat-value" id="completedQuizzes">
+         0
+        </div>
+        <div class="stat-label">
+         Quizzes Completed
+        </div>
+       </div>
+      </div>
+     </div><!-- House Standings -->
+     <div class="dashboard-card">
+      <h3>House Standings</h3>
+      <div class="house-leaderboard">
+       <div class="house-card red">
+        <div class="house-name">
+         Red House
+        </div>
+        <div class="house-total" id="redHouseTotal">
+         1,250
+        </div>
+       </div>
+       <div class="house-card green">
+        <div class="house-name">
+         Green House
+        </div>
+        <div class="house-total" id="greenHouseTotal">
+         1,180
+        </div>
+       </div>
+       <div class="house-card yellow">
+        <div class="house-name">
+         Yellow House
+        </div>
+        <div class="house-total" id="yellowHouseTotal">
+         1,320
+        </div>
+       </div>
+       <div class="house-card blue">
+        <div class="house-name">
+         Blue House
+        </div>
+        <div class="house-total" id="blueHouseTotal">
+         1,290
+        </div>
+       </div>
+      </div>
+     </div><!-- Recent Activity -->
+     <div class="dashboard-card">
+      <h3>Recent Activity</h3>
+      <div id="recentActivity">
+       <div class="stat-item">
+        <div class="stat-value">
+         🏀
+        </div>
+        <div class="stat-label">
+         Basketball Assessment Completed
+        </div>
+       </div>
+       <div class="stat-item">
+        <div class="stat-value">
+         🧠
+        </div>
+        <div class="stat-label">
+         Quiz Level 5 Completed
+        </div>
+       </div>
+      </div>
+     </div>
+    </div><!-- Sports Tab -->
+    <div id="sportsTab" class="sports-grid hidden"><!-- Sports will be dynamically loaded here -->
+    </div><!-- Sport Detail View -->
+    <div id="sportDetailView" class="hidden">
+     <div class="sport-detail-container">
+      <div class="sport-detail-header"><button class="back-btn" id="backToSports">← Back to Sports</button>
+       <h2 id="sportDetailTitle">Basketball</h2>
+      </div>
+      <div class="lesson-grid" id="lessonGrid"><!-- Lessons 1-10 + Skills + History will be loaded here -->
+      </div>
+     </div>
+    </div><!-- Lesson Detail View -->
+    <div id="lessonDetailView" class="hidden">
+     <div class="lesson-container">
+      <div class="lesson-header"><button class="back-btn" id="backToSport">← Back to Sport</button>
+       <h2 id="lessonTitle">Lesson 1: Assessment</h2>
+      </div>
+      <div class="lesson-content" id="lessonContent"><!-- Lesson content will be loaded here -->
+      </div>
+     </div>
+    </div><!-- Assessment View -->
+    <div id="assessmentView" class="hidden">
+     <div class="assessment-container">
+      <div class="assessment-header"><button class="back-btn" id="backToLesson">← Back to Lesson</button>
+       <h2 id="assessmentTitle">Self-Assessment</h2>
+       <p id="assessmentSubtitle">Rate your current skill level</p>
+      </div>
+      <div class="assessment-content" id="assessmentContent"><!-- Assessment skills will be loaded here -->
+      </div>
+      <div class="assessment-actions"><button class="assessment-btn" id="saveAssessment">Save Assessment</button>
+      </div>
+     </div>
+    </div><!-- Skills View (Teacher Only) -->
+    <div id="skillsView" class="hidden">
+     <div class="skills-container">
+      <div class="skills-header"><button class="back-btn" id="backToSportFromSkills">← Back to Sport</button>
+       <h2>Skills Assessment</h2>
+       <p>Teacher evaluation - Awards house points (0-20)</p>
+      </div>
+      <div class="skills-content" id="skillsContent"><!-- Skills evaluation will be loaded here -->
+      </div>
+     </div>
+    </div><!-- Sport History View -->
+    <div id="sportHistoryView" class="hidden">
+     <div class="history-container">
+      <div class="history-header"><button class="back-btn" id="backToSportFromHistory">← Back to Sport</button>
+       <h2 id="historyTitle">Basketball History</h2>
+      </div>
+      <div class="history-content" id="historyContent"><!-- History content and quiz will be loaded here -->
+      </div>
+     </div>
+    </div><!-- Quiz Tab -->
+    <div id="quizTab" class="quiz-map-container hidden">
+     <div class="quiz-map-header">
+      <h2>PE Knowledge Quest</h2>
+      <p>100 levels of PE mastery - Candy Crush style progression!</p>
+      <div class="quiz-stats"><span>Level: <strong id="currentQuizLevel">1</strong></span> <span>Completed: <strong id="completedQuizLevels">0</strong>/100</span>
+      </div>
+     </div>
+     <div class="quiz-map" id="quizMap"><!-- Quiz levels will be dynamically loaded here -->
+     </div>
+    </div><!-- Quiz Level View -->
+    <div id="quizLevelView" class="hidden">
+     <div class="quiz-level-container">
+      <div class="quiz-level-header"><button class="back-btn" id="backToQuizMap">← Back to Map</button>
+       <h2 id="quizLevelTitle">Level 1 Quiz</h2>
+       <div class="quiz-progress"><span>Question <span id="currentQuestionNum">1</span> of 10</span>
+       </div>
+      </div>
+      <div class="quiz-intro" id="quizIntro"><!-- Quiz introduction and author citation -->
+      </div>
+      <div class="quiz-question-container" id="quizQuestionContainer"><!-- Quiz questions will be loaded here -->
+      </div>
+     </div>
+    </div><!-- Leaderboard Tab -->
+    <div id="leaderboardTab" class="hidden">
+     <div style="padding: 2rem; color: white;">
+      <h2>Leaderboard</h2>
+      <p>Class and school-wide rankings coming soon!</p>
+     </div>
+    </div><!-- Profile Tab -->
+    <div id="profileTab" class="hidden">
+     <div style="padding: 2rem; color: white;">
+      <h2>Profile Settings</h2>
+      <p>Manage your account settings and preferences.</p>
+     </div>
+    </div>
+   </main>
+  </div>
+  <script>
+        // Configuration and Data
+        const defaultConfig = {
+            app_title: "PE Learning Hub",
+            welcome_message: "Welcome to your PE Learning Journey",
+            school_name: "Crescendo HELP International School",
+            background_color: "#667eea",
+            surface_color: "#ffffff",
+            text_color: "#1a1a1a",
+            primary_action_color: "#667eea",
+            secondary_action_color: "#28a745"
+        };
+
+        // Modular Sports Architecture - Each sport as independent module
+        const SPORTS_MODULES = {
+            basketball: {
+                name: "Basketball",
+                icon: "🏀",
+                keyStage: "all",
+                equipment: ["Basketball", "Hoop", "Court"],
+                skills: ["Dribbling", "Shooting", "Passing", "Defense"],
+                contentVersion: "1.0",
+                lessons: {
+                    2: { title: "Dribbling Basics", content: "basketball_lesson_2.json" },
+                    3: { title: "Shooting Technique", content: "basketball_lesson_3.json" },
+                    4: { title: "Passing Skills", content: "basketball_lesson_4.json" },
+                    6: { title: "Defensive Positioning", content: "basketball_lesson_6.json" },
+                    7: { title: "Game Strategy", content: "basketball_lesson_7.json" },
+                    8: { title: "Team Play", content: "basketball_lesson_8.json" }
+                },
+                skillsAssessment: "basketball_skills.json",
+                historyQuiz: "basketball_history.json"
+            },
+            football: {
+                name: "Football",
+                icon: "⚽",
+                keyStage: "all",
+                equipment: ["Football", "Goals", "Pitch"],
+                skills: ["Ball Control", "Passing", "Shooting", "Tackling"],
+                contentVersion: "1.0",
+                lessons: {
+                    2: { title: "Ball Control", content: "football_lesson_2.json" },
+                    3: { title: "Passing Accuracy", content: "football_lesson_3.json" },
+                    4: { title: "Shooting Power", content: "football_lesson_4.json" },
+                    6: { title: "Defensive Skills", content: "football_lesson_6.json" },
+                    7: { title: "Tactical Awareness", content: "football_lesson_7.json" },
+                    8: { title: "Match Play", content: "football_lesson_8.json" }
+                },
+                skillsAssessment: "football_skills.json",
+                historyQuiz: "football_history.json"
+            },
+            handball: {
+                name: "Handball",
+                icon: "🤾",
+                keyStage: "KS2+",
+                equipment: ["Handball", "Goals", "Court"],
+                skills: ["Throwing", "Catching", "Jumping", "Blocking"],
+                contentVersion: "1.0",
+                lessons: {
+                    2: { title: "Basic Throwing", content: "handball_lesson_2.json" },
+                    3: { title: "Catching Techniques", content: "handball_lesson_3.json" },
+                    4: { title: "Goal Shooting", content: "handball_lesson_4.json" },
+                    6: { title: "Defensive Play", content: "handball_lesson_6.json" },
+                    7: { title: "Team Tactics", content: "handball_lesson_7.json" },
+                    8: { title: "Fast Break", content: "handball_lesson_8.json" }
+                },
+                skillsAssessment: "handball_skills.json",
+                historyQuiz: "handball_history.json"
+            }
+        };
+
+        // Legacy compatibility - convert to old format for existing code
+        const SPORTS_DATA = Object.fromEntries(
+            Object.entries(SPORTS_MODULES).map(([key, module]) => [
+                key, { name: module.name, icon: module.icon }
+            ])
+        );
+
+        // Lesson Structure
+        const LESSON_STRUCTURE = {
+            1: { type: 'assessment', title: 'Initial Assessment', description: 'Self-assessment of current skills' },
+            2: { type: 'practice', title: 'Basic Techniques', description: 'Fundamental motor skills' },
+            3: { type: 'practice', title: 'Skill Development', description: 'Building core competencies' },
+            4: { type: 'practice', title: 'Applied Practice', description: 'Practical skill application' },
+            5: { type: 'assessment', title: 'Mid-Point Assessment', description: 'Progress evaluation' },
+            6: { type: 'practice', title: 'Advanced Techniques', description: 'Complex motor patterns' },
+            7: { type: 'practice', title: 'Strategy & Tactics', description: 'Game understanding' },
+            8: { type: 'practice', title: 'Performance Skills', description: 'Competitive application' },
+            9: { type: 'assessment', title: 'Pre-Final Assessment', description: 'Comprehensive evaluation' },
+            10: { type: 'assessment', title: 'Final Assessment', description: 'Complete skill demonstration' },
+            11: { type: 'skills', title: 'SKILLS', description: 'Teacher evaluation (0-20 points)' },
+            12: { type: 'history', title: 'Sport History', description: 'Origins and evolution + Quiz' }
+        };
+
+        // Assessment Skills Structure
+        const ASSESSMENT_SKILLS = {
+            motor1: {
+                title: "Movement Coordination",
+                description: "Ability to coordinate body movements effectively and efficiently",
+                type: "motor"
+            },
+            motor2: {
+                title: "Technical Execution",
+                description: "Precision and accuracy in performing sport-specific techniques",
+                type: "motor"
+            },
+            motor3: {
+                title: "Physical Control",
+                description: "Balance, stability, and body control during activities",
+                type: "motor"
+            },
+            methodology: {
+                title: "Understanding & Application",
+                description: "Knowledge of rules, strategies, and tactical awareness",
+                type: "methodology"
+            },
+            social: {
+                title: "Teamwork & Communication",
+                description: "Collaboration, leadership, and positive interaction with others",
+                type: "social"
+            }
+        };
+
+        // Skill Levels
+        const SKILL_LEVELS = {
+            1: { name: "Beginner", description: "Just starting to learn the basics" },
+            2: { name: "Explorer", description: "Developing understanding and trying new skills" },
+            3: { name: "Performer", description: "Confident execution with good technique" },
+            4: { name: "Champion", description: "Excellent mastery and leadership qualities" }
+        };
+
+        // Quiz Topics
+        const QUIZ_TOPICS = [
+            "Foundations of Health",
+            "Strong Body, Strong Mind", 
+            "Fuel & Nutrition",
+            "Teamwork Counts",
+            "Values in Sport",
+            "Olympic Journey",
+            "Know Your Body",
+            "Safe Moves",
+            "Fair Play First",
+            "PE in Society"
+        ];
+
+        // Sample Quiz Questions
+        const SAMPLE_QUIZ_QUESTIONS = {
+            "Foundations of Health": [
+                {
+                    question: "What are the main components of physical fitness?",
+                    options: ["Strength, Speed, Flexibility", "Cardiovascular endurance, Muscular strength, Flexibility, Body composition", "Running, Jumping, Throwing", "Diet, Exercise, Sleep"],
+                    correct: 1,
+                    explanation: "Physical fitness includes cardiovascular endurance, muscular strength, muscular endurance, flexibility, and body composition."
+                }
+            ],
+            "Strong Body, Strong Mind": [
+                {
+                    question: "How does regular exercise benefit mental health?",
+                    options: ["Only improves physical appearance", "Reduces stress and improves mood through endorphin release", "Has no effect on mental health", "Only helps with sleep"],
+                    correct: 1,
+                    explanation: "Exercise releases endorphins, reduces stress hormones, and improves overall mental wellbeing and cognitive function."
+                }
+            ],
+            "Fuel & Nutrition": [
+                {
+                    question: "What is the best time to eat before exercising?",
+                    options: ["Immediately before exercise", "2-3 hours before for a large meal, 30-60 minutes for a snack", "Never eat before exercise", "Only after exercise"],
+                    correct: 1,
+                    explanation: "Proper timing allows for digestion while providing energy for performance. Large meals need more time to digest."
+                }
+            ]
+        };
+
+        // Key Stage Classification
+        const KEY_STAGES = {
+            'Year 1': 'KS1', 'Year 2': 'KS1',
+            'Year 3': 'KS2', 'Year 4': 'KS2',
+            'Year 5': 'KS2_plus', 'Year 6': 'KS2_plus',
+            'Year 7': 'KS3', 'Year 8': 'KS3', 'Year 9': 'KS3',
+            'Year 10': 'KS4', 'Year 11': 'KS4',
+            'Year 12': 'KS5', 'Year 13': 'KS5'
+        };
+
+        // Application State
+        let currentUser = null;
+        let currentView = 'dashboard';
+        let currentUserType = 'student';
+        let selectedHouse = null;
+        let profilePhotoData = null;
+        let userData = [];
+        let isDarkMode = false;
+        let currentSport = null;
+        let currentLesson = null;
+        let currentAssessment = {};
+        let currentQuizLevel = 1;
+        let currentQuizQuestion = 0;
+        let quizQuestions = [];
+        let quizAnswers = [];
+        let completedQuizLevels = [];
+        let cameraStream = null;
+        let isCameraActive = false;
+
+        // Data SDK Handler
+        const dataHandler = {
+            onDataChanged(data) {
+                userData = data;
+                if (currentUser) {
+                    updateDashboard();
+                }
+            }
+        };
+
+        // Content Management System - Database structure with versioning
+        const CONTENT_MANAGER = {
+            version: "1.0.0",
+            lastUpdated: new Date().toISOString(),
+            
+            // Load lesson content dynamically (no hardcoded content in main codebase)
+            async loadLessonContent(sport, lessonNumber) {
+                try {
+                    // In production, this would fetch from Firebase/database
+                    const contentPath = SPORTS_MODULES[sport]?.lessons[lessonNumber]?.content;
+                    if (!contentPath) {
+                        return this.getDefaultLessonContent(sport, lessonNumber);
+                    }
+                    
+                    // Simulate API call - in production would be: fetch(`/api/content/${contentPath}`)
+                    return this.getDefaultLessonContent(sport, lessonNumber);
+                } catch (error) {
+                    console.error('Failed to load lesson content:', error);
+                    return this.getDefaultLessonContent(sport, lessonNumber);
+                }
+            },
+            
+            // Load skills assessment data
+            async loadSkillsAssessment(sport) {
+                try {
+                    const assessmentPath = SPORTS_MODULES[sport]?.skillsAssessment;
+                    // In production: fetch(`/api/assessments/${assessmentPath}`)
+                    return this.getDefaultSkillsAssessment(sport);
+                } catch (error) {
+                    console.error('Failed to load skills assessment:', error);
+                    return this.getDefaultSkillsAssessment(sport);
+                }
+            },
+            
+            // Load quiz questions
+            async loadQuizQuestions(level) {
+                try {
+                    // In production: fetch(`/api/quiz/level/${level}`)
+                    return this.getDefaultQuizQuestions(level);
+                } catch (error) {
+                    console.error('Failed to load quiz questions:', error);
+                    return this.getDefaultQuizQuestions(level);
+                }
+            },
+            
+            // Default content generators (fallbacks)
+            getDefaultLessonContent(sport, lessonNumber) {
+                const sportModule = SPORTS_MODULES[sport];
+                const lessonTitle = sportModule?.lessons[lessonNumber]?.title || `Lesson ${lessonNumber}`;
+                
+                return {
+                    title: lessonTitle,
+                    objectives: [`Master ${sportModule?.skills[0] || 'basic skills'}`, "Improve technique", "Build confidence"],
+                    activities: [
+                        { name: "Warm-up", duration: "10 mins", description: "Dynamic stretching and light movement" },
+                        { name: "Skill Practice", duration: "20 mins", description: `Focus on ${lessonTitle.toLowerCase()}` },
+                        { name: "Game Application", duration: "15 mins", description: "Apply skills in game-like situations" },
+                        { name: "Cool-down", duration: "5 mins", description: "Static stretching and reflection" }
+                    ],
+                    equipment: sportModule?.equipment || ["Basic equipment"],
+                    safetyNotes: ["Check equipment before use", "Maintain safe distances", "Follow teacher instructions"],
+                    version: "1.0"
+                };
+            },
+            
+            getDefaultSkillsAssessment(sport) {
+                return {
+                    sport: sport,
+                    skills: [
+                        { name: "Motor Skill 1", maxPoints: 4, criteria: "Coordination and control" },
+                        { name: "Motor Skill 2", maxPoints: 4, criteria: "Technique execution" },
+                        { name: "Motor Skill 3", maxPoints: 4, criteria: "Physical application" },
+                        { name: "Methodology", maxPoints: 4, criteria: "Understanding and strategy" },
+                        { name: "Social Skills", maxPoints: 4, criteria: "Teamwork and communication" }
+                    ],
+                    totalPoints: 20,
+                    version: "1.0"
+                };
+            },
+            
+            getDefaultQuizQuestions(level) {
+                const topicIndex = (level - 1) % QUIZ_TOPICS.length;
+                const topic = QUIZ_TOPICS[topicIndex];
+                
+                return Array.from({ length: 10 }, (_, i) => ({
+                    id: `${level}_${i + 1}`,
+                    topic: topic,
+                    question: `Question ${i + 1} about ${topic}`,
+                    options: [
+                        "Option A - Basic understanding",
+                        "Option B - Intermediate knowledge",
+                        "Option C - Advanced application",
+                        "Option D - Expert mastery"
+                    ],
+                    correct: Math.floor(Math.random() * 4),
+                    explanation: `This tests your knowledge of ${topic} concepts.`,
+                    difficulty: Math.min(Math.floor(level / 10) + 1, 5),
+                    version: "1.0"
+                }));
+            }
+        };
+
+        // Initialize Application
+        async function initializeApp() {
+            // Initialize theme first for immediate visual feedback
+            initializeTheme();
+            
+            // Initialize Data SDK
+            if (window.dataSdk) {
+                const initResult = await window.dataSdk.init(dataHandler);
+                if (!initResult.isOk) {
+                    console.error("Failed to initialize data SDK");
+                }
+            }
+
+            // Initialize Element SDK
+            if (window.elementSdk) {
+                await window.elementSdk.init({
+                    defaultConfig,
+                    onConfigChange,
+                    mapToCapabilities: (config) => ({
+                        recolorables: [
+                            {
+                                get: () => config.background_color || defaultConfig.background_color,
+                                set: (value) => {
+                                    config.background_color = value;
+                                    window.elementSdk.setConfig({ background_color: value });
+                                }
+                            },
+                            {
+                                get: () => config.surface_color || defaultConfig.surface_color,
+                                set: (value) => {
+                                    config.surface_color = value;
+                                    window.elementSdk.setConfig({ surface_color: value });
+                                }
+                            },
+                            {
+                                get: () => config.text_color || defaultConfig.text_color,
+                                set: (value) => {
+                                    config.text_color = value;
+                                    window.elementSdk.setConfig({ text_color: value });
+                                }
+                            },
+                            {
+                                get: () => config.primary_action_color || defaultConfig.primary_action_color,
+                                set: (value) => {
+                                    config.primary_action_color = value;
+                                    window.elementSdk.setConfig({ primary_action_color: value });
+                                }
+                            },
+                            {
+                                get: () => config.secondary_action_color || defaultConfig.secondary_action_color,
+                                set: (value) => {
+                                    config.secondary_action_color = value;
+                                    window.elementSdk.setConfig({ secondary_action_color: value });
+                                }
+                            }
+                        ],
+                        borderables: [],
+                        fontEditable: undefined,
+                        fontSizeable: undefined
+                    }),
+                    mapToEditPanelValues: (config) => new Map([
+                        ["app_title", config.app_title || defaultConfig.app_title],
+                        ["welcome_message", config.welcome_message || defaultConfig.welcome_message],
+                        ["school_name", config.school_name || defaultConfig.school_name]
+                    ])
+                });
+            }
+
+            setupEventListeners();
+            checkExistingUser();
+        }
+
+        async function onConfigChange(config) {
+            const appTitle = config.app_title || defaultConfig.app_title;
+            const welcomeMessage = config.welcome_message || defaultConfig.welcome_message;
+            const schoolName = config.school_name || defaultConfig.school_name;
+
+            document.getElementById('appTitle').textContent = appTitle;
+            document.getElementById('headerTitle').textContent = appTitle;
+            document.getElementById('welcomeMessage').textContent = welcomeMessage;
+            
+            // Update school option
+            const schoolSelect = document.getElementById('school');
+            if (schoolSelect.options[0]) {
+                schoolSelect.options[0].textContent = schoolName;
+                schoolSelect.options[0].value = schoolName;
+            }
+        }
+
+        function setupEventListeners() {
+            // User type selection
+            document.querySelectorAll('.user-type-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    document.querySelectorAll('.user-type-btn').forEach(b => b.classList.remove('active'));
+                    e.target.closest('.user-type-btn').classList.add('active');
+                    currentUserType = e.target.closest('.user-type-btn').dataset.type;
+                    toggleAuthForms();
+                });
+            });
+
+            // Photo upload and camera
+            document.getElementById('uploadBtn').addEventListener('click', () => {
+                document.getElementById('profilePhoto').click();
+            });
+
+            document.getElementById('takePhotoBtn').addEventListener('click', startCamera);
+            document.getElementById('captureBtn').addEventListener('click', capturePhoto);
+            document.getElementById('retakeBtn').addEventListener('click', retakePhoto);
+
+            document.getElementById('profilePhoto').addEventListener('change', handlePhotoUpload);
+
+            // House selection
+            document.querySelectorAll('.house-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    document.querySelectorAll('.house-btn').forEach(b => b.classList.remove('selected'));
+                    e.target.classList.add('selected');
+                    selectedHouse = e.target.dataset.house;
+                });
+            });
+
+            // Form submissions
+            document.getElementById('studentForm').addEventListener('submit', handleStudentRegistration);
+            document.getElementById('teacherForm').addEventListener('submit', handleTeacherLogin);
+
+            // Navigation tabs
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.addEventListener('click', (e) => switchTab(e.target.dataset.tab));
+            });
+
+            // Theme toggle
+            document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+
+            // Sports navigation
+            document.getElementById('backToSports').addEventListener('click', () => switchTab('sports'));
+            document.getElementById('backToSport').addEventListener('click', showSportDetail);
+            document.getElementById('backToLesson').addEventListener('click', showLessonDetail);
+            document.getElementById('backToSportFromSkills').addEventListener('click', showSportDetail);
+            document.getElementById('backToSportFromHistory').addEventListener('click', showSportDetail);
+
+            // Assessment
+            document.getElementById('saveAssessment').addEventListener('click', saveAssessment);
+
+            // Quiz navigation
+            document.getElementById('backToQuizMap').addEventListener('click', () => switchTab('quiz'));
+        }
+
+        function toggleAuthForms() {
+            const studentForm = document.getElementById('studentForm');
+            const teacherForm = document.getElementById('teacherForm');
+            
+            if (currentUserType === 'student') {
+                studentForm.classList.remove('hidden');
+                teacherForm.classList.add('hidden');
+            } else {
+                studentForm.classList.add('hidden');
+                teacherForm.classList.remove('hidden');
+            }
+        }
+
+        function handlePhotoUpload(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    profilePhotoData = e.target.result;
+                    const preview = document.getElementById('photoPreview');
+                    preview.innerHTML = `<img src="${profilePhotoData}" alt="Profile Photo">`;
+                    resetCameraUI();
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        async function startCamera() {
+            try {
+                // Stop any existing camera stream
+                if (cameraStream) {
+                    cameraStream.getTracks().forEach(track => track.stop());
+                }
+
+                // Request camera access
+                cameraStream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { 
+                        width: { ideal: 640 },
+                        height: { ideal: 480 },
+                        facingMode: 'user' // Front-facing camera
+                    } 
+                });
+
+                const video = document.getElementById('cameraPreview');
+                const preview = document.getElementById('photoPreview');
+                
+                video.srcObject = cameraStream;
+                video.play();
+                
+                // Show camera preview and hide photo preview
+                video.style.display = 'block';
+                preview.style.display = 'none';
+                
+                // Update button visibility
+                document.getElementById('takePhotoBtn').style.display = 'none';
+                document.getElementById('uploadBtn').style.display = 'none';
+                document.getElementById('captureBtn').style.display = 'inline-block';
+                document.getElementById('retakeBtn').style.display = 'inline-block';
+                
+                isCameraActive = true;
+                
+            } catch (error) {
+                console.error('Error accessing camera:', error);
+                showNotification('Camera access denied or not available. Please use upload instead.', 'error');
+            }
+        }
+
+        function capturePhoto() {
+            if (!cameraStream || !isCameraActive) return;
+
+            const video = document.getElementById('cameraPreview');
+            const canvas = document.getElementById('photoCanvas');
+            const preview = document.getElementById('photoPreview');
+            
+            // Set canvas dimensions to match video
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            
+            // Draw video frame to canvas
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            // Convert to data URL
+            profilePhotoData = canvas.toDataURL('image/jpeg', 0.8);
+            
+            // Update preview
+            preview.innerHTML = `<img src="${profilePhotoData}" alt="Captured Photo">`;
+            preview.style.display = 'flex';
+            
+            // Stop camera and hide video
+            stopCamera();
+            
+            showNotification('Photo captured successfully!', 'success');
+        }
+
+        function retakePhoto() {
+            if (isCameraActive) {
+                // If camera is active, just restart it
+                startCamera();
+            } else {
+                // If camera is not active, start it fresh
+                resetCameraUI();
+                startCamera();
+            }
+        }
+
+        function stopCamera() {
+            if (cameraStream) {
+                cameraStream.getTracks().forEach(track => track.stop());
+                cameraStream = null;
+            }
+            
+            const video = document.getElementById('cameraPreview');
+            video.style.display = 'none';
+            video.srcObject = null;
+            
+            isCameraActive = false;
+            resetCameraUI();
+        }
+
+        function resetCameraUI() {
+            // Reset button visibility
+            document.getElementById('takePhotoBtn').style.display = 'inline-block';
+            document.getElementById('uploadBtn').style.display = 'inline-block';
+            document.getElementById('captureBtn').style.display = 'none';
+            document.getElementById('retakeBtn').style.display = 'none';
+            
+            // Show photo preview
+            document.getElementById('photoPreview').style.display = 'flex';
+        }
+
+        async function handleStudentRegistration(e) {
+            e.preventDefault();
+            
+            if (!selectedHouse) {
+                showNotification('Please select a house team', 'error');
+                return;
+            }
+
+            if (!profilePhotoData) {
+                showNotification('Please upload or take a profile photo', 'error');
+                return;
+            }
+
+            // Stop camera if active
+            if (isCameraActive) {
+                stopCamera();
+            }
+
+            const submitBtn = document.getElementById('studentSubmitBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Creating Account...';
+
+            const formData = {
+                user_type: 'student',
+                full_name: document.getElementById('studentFullName').value,
+                email: document.getElementById('studentEmail').value,
+                student_id: document.getElementById('studentId').value,
+                class_grade: document.getElementById('classGrade').value,
+                school: document.getElementById('school').value,
+                house_team: selectedHouse,
+                profile_photo: profilePhotoData,
+                gender: document.getElementById('gender').value,
+                avatar_level: 1,
+                house_points: 0,
+                sport_progress: JSON.stringify({}),
+                quiz_progress: JSON.stringify({ currentLevel: 1, completed: [] }),
+                achievements: JSON.stringify(['Getting Started']),
+                assessment_data: JSON.stringify({}),
+                dark_mode: false,
+                created_at: new Date().toISOString(),
+                last_login: new Date().toISOString()
+            };
+
+            // Check if user already exists
+            const existingUser = userData.find(user => 
+                user.student_id === formData.student_id || user.email === formData.email
+            );
+            if (existingUser) {
+                const duplicateField = existingUser.student_id === formData.student_id ? 'Student ID' : 'Email address';
+                showNotification(`${duplicateField} already exists`, 'error');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Create Student Account';
+                return;
+            }
+
+            if (window.dataSdk) {
+                const result = await window.dataSdk.create({
+                    user_id: formData.student_id,
+                    ...formData
+                });
+
+                if (result.isOk) {
+                    currentUser = formData;
+                    localStorage.setItem('peHubUser', JSON.stringify(currentUser));
+                    showMainApp();
+                    showNotification('Account created successfully!', 'success');
+                } else {
+                    showNotification('Failed to create account', 'error');
+                }
+            }
+
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Create Student Account';
+        }
+
+        async function handleTeacherLogin(e) {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('teacherSubmitBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Logging in...';
+
+            const prefix = document.getElementById('teacherPrefix').value;
+            const name = document.getElementById('teacherName').value;
+            const password = document.getElementById('teacherPassword').value;
+
+            // Check for first-time login
+            if (password === 'Chis1234') {
+                showNotification('Please change your password after first login', 'info');
+                // In a real app, this would redirect to password change
+            }
+
+            // For demo purposes, accept any teacher login
+            const teacherData = {
+                user_type: 'teacher',
+                full_name: `${prefix} ${name}`,
+                teacher_password: password,
+                password_changed: password !== 'Chis1234',
+                dark_mode: false,
+                created_at: new Date().toISOString(),
+                last_login: new Date().toISOString()
+            };
+
+            currentUser = teacherData;
+            localStorage.setItem('peHubUser', JSON.stringify(currentUser));
+            showTeacherDashboard();
+            showNotification('Teacher login successful!', 'success');
+
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Teacher Login';
+        }
+
+        function showTeacherDashboard() {
+            document.getElementById('authScreen').classList.add('hidden');
+            document.getElementById('appContainer').style.display = 'flex';
+            
+            // Update navigation for teacher
+            document.querySelector('.nav-tabs').innerHTML = `
+                <button class="nav-tab active" data-tab="teacher-overview">📊 Class Overview</button>
+                <button class="nav-tab" data-tab="teacher-assessments">📝 Skills Assessment</button>
+                <button class="nav-tab" data-tab="teacher-analytics">📈 Analytics</button>
+                <button class="nav-tab" data-tab="teacher-students">👥 Student Data</button>
+                <button class="nav-tab" data-tab="teacher-reports">📋 Reports</button>
+            `;
+            
+            // Show teacher-specific interface
+            document.querySelector('.main-content').innerHTML = `
+                <!-- Teacher Overview Tab -->
+                <div id="teacher-overviewTab" class="teacher-dashboard">
+                    <div class="teacher-header">
+                        <h2>Class Overview</h2>
+                        <p>Welcome, ${currentUser.full_name}! Manage your students and track their progress.</p>
+                    </div>
+                    
+                    <div class="class-selector">
+                        <label for="teacherClassSelect">Select Class:</label>
+                        <select id="teacherClassSelect" onchange="loadClassStudents()">
+                            <option value="">All Classes</option>
+                            <option value="Year 1C">Year 1C</option>
+                            <option value="Year 2H">Year 2H</option>
+                            <option value="Year 3S">Year 3S</option>
+                            <option value="Year 4B">Year 4B</option>
+                            <option value="Year 5J">Year 5J</option>
+                            <option value="Year 6I">Year 6I</option>
+                        </select>
+                    </div>
+                    
+                    <div class="students-grid" id="studentsGrid">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                            Loading students...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Teacher Skills Assessment Tab -->
+                <div id="teacher-assessmentsTab" class="teacher-dashboard hidden">
+                    <div class="teacher-header">
+                        <h2>Skills Assessment Management</h2>
+                        <p>Evaluate student SKILLS performance (0-20 points). Self-assessments are view-only.</p>
+                    </div>
+                    
+                    <div class="assessment-filters">
+                        <select id="assessmentClassFilter" onchange="loadAssessmentData()">
+                            <option value="">All Classes</option>
+                            <option value="Year 1C">Year 1C</option>
+                            <option value="Year 2H">Year 2H</option>
+                            <option value="Year 3S">Year 3S</option>
+                        </select>
+                        
+                        <select id="assessmentSportFilter" onchange="loadAssessmentData()">
+                            <option value="">All Sports</option>
+                            <option value="basketball">Basketball</option>
+                            <option value="football">Football</option>
+                            <option value="handball">Handball</option>
+                        </select>
+                    </div>
+                    
+                    <div class="assessment-grid" id="assessmentGrid">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                            Loading assessments...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Teacher Analytics Tab -->
+                <div id="teacher-analyticsTab" class="teacher-dashboard hidden">
+                    <div class="teacher-header">
+                        <h2>Performance Analytics</h2>
+                        <p>Compare class performance and track individual student progress.</p>
+                    </div>
+                    
+                    <div class="analytics-cards">
+                        <div class="analytics-card">
+                            <h3>Class Performance Comparison</h3>
+                            <div class="class-comparison" id="classComparison">
+                                <div class="class-stat">
+                                    <div class="class-name">Year 1C</div>
+                                    <div class="class-average">Average: 85%</div>
+                                    <div class="class-progress">
+                                        <div class="progress-bar" style="width: 85%"></div>
+                                    </div>
+                                </div>
+                                <div class="class-stat">
+                                    <div class="class-name">Year 2H</div>
+                                    <div class="class-average">Average: 78%</div>
+                                    <div class="class-progress">
+                                        <div class="progress-bar" style="width: 78%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="analytics-card">
+                            <h3>House Points Distribution</h3>
+                            <div class="house-analytics" id="houseAnalytics">
+                                <div class="house-stat red">
+                                    <div class="house-name">Red House</div>
+                                    <div class="house-total">1,250 pts</div>
+                                    <div class="house-students">45 students</div>
+                                </div>
+                                <div class="house-stat green">
+                                    <div class="house-name">Green House</div>
+                                    <div class="house-total">1,180 pts</div>
+                                    <div class="house-students">42 students</div>
+                                </div>
+                                <div class="house-stat yellow">
+                                    <div class="house-name">Yellow House</div>
+                                    <div class="house-total">1,320 pts</div>
+                                    <div class="house-students">48 students</div>
+                                </div>
+                                <div class="house-stat blue">
+                                    <div class="house-name">Blue House</div>
+                                    <div class="house-total">1,290 pts</div>
+                                    <div class="house-students">46 students</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="analytics-card">
+                            <h3>Assessment Completion Rates</h3>
+                            <div class="completion-stats" id="completionStats">
+                                <div class="completion-item">
+                                    <span>Self-Assessments</span>
+                                    <div class="completion-bar">
+                                        <div class="completion-fill" style="width: 92%"></div>
+                                        <span class="completion-text">92%</span>
+                                    </div>
+                                </div>
+                                <div class="completion-item">
+                                    <span>Skills Evaluations</span>
+                                    <div class="completion-bar">
+                                        <div class="completion-fill" style="width: 76%"></div>
+                                        <span class="completion-text">76%</span>
+                                    </div>
+                                </div>
+                                <div class="completion-item">
+                                    <span>Quiz Completion</span>
+                                    <div class="completion-bar">
+                                        <div class="completion-fill" style="width: 84%"></div>
+                                        <span class="completion-text">84%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Teacher Student Data Tab -->
+                <div id="teacher-studentsTab" class="teacher-dashboard hidden">
+                    <div class="teacher-header">
+                        <h2>Individual Student Data</h2>
+                        <p>View detailed student profiles and progress tracking.</p>
+                    </div>
+                    
+                    <div class="student-search">
+                        <input type="text" id="studentSearchInput" placeholder="Search students by name or ID..." onkeyup="searchStudents()">
+                    </div>
+                    
+                    <div class="student-details-grid" id="studentDetailsGrid">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                            Loading student data...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Teacher Reports Tab -->
+                <div id="teacher-reportsTab" class="teacher-dashboard hidden">
+                    <div class="teacher-header">
+                        <h2>Progress Reports</h2>
+                        <p>Generate and export comprehensive progress reports.</p>
+                    </div>
+                    
+                    <div class="report-options">
+                        <div class="report-card">
+                            <h3>Class Progress Report</h3>
+                            <p>Complete overview of class performance across all sports and assessments.</p>
+                            <div class="report-controls">
+                                <select id="reportClassSelect">
+                                    <option value="">Select Class</option>
+                                    <option value="Year 1C">Year 1C</option>
+                                    <option value="Year 2H">Year 2H</option>
+                                </select>
+                                <button class="report-btn" onclick="generateClassReport()">📊 Generate Report</button>
+                                <button class="report-btn secondary" onclick="exportClassReport()">📄 Export PDF</button>
+                            </div>
+                        </div>
+                        
+                        <div class="report-card">
+                            <h3>Individual Student Report</h3>
+                            <p>Detailed progress report for a specific student including avatar progression.</p>
+                            <div class="report-controls">
+                                <select id="reportStudentSelect">
+                                    <option value="">Select Student</option>
+                                </select>
+                                <button class="report-btn" onclick="generateStudentReport()">👤 Generate Report</button>
+                                <button class="report-btn secondary" onclick="exportStudentReport()">📄 Export PDF</button>
+                            </div>
+                        </div>
+                        
+                        <div class="report-card">
+                            <h3>House Points Summary</h3>
+                            <p>House competition standings and point distribution analysis.</p>
+                            <div class="report-controls">
+                                <button class="report-btn" onclick="generateHouseReport()">🏆 Generate Report</button>
+                                <button class="report-btn secondary" onclick="exportHouseReport()">📄 Export PDF</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="report-preview" id="reportPreview">
+                        <!-- Generated reports will appear here -->
+                    </div>
+                </div>
+            `;
+            
+            // Setup teacher navigation
+            setupTeacherNavigation();
+            loadClassStudents();
+        }
+
+        function checkExistingUser() {
+            const userData = localStorage.getItem('peHubUser');
+            if (userData) {
+                currentUser = JSON.parse(userData);
+                if (currentUser.user_type === 'teacher') {
+                    showTeacherDashboard();
+                } else {
+                    showMainApp();
+                }
+            }
+        }
+
+        function showMainApp() {
+            document.getElementById('authScreen').classList.add('hidden');
+            document.getElementById('appContainer').style.display = 'flex';
+            
+            // Update user info
+            document.getElementById('userName').textContent = currentUser.full_name;
+            document.getElementById('userClass').textContent = currentUser.class_grade;
+            document.getElementById('userHouse').textContent = `${currentUser.house_team.charAt(0).toUpperCase() + currentUser.house_team.slice(1)} House`;
+            
+            // Set avatar images
+            if (currentUser.profile_photo) {
+                document.getElementById('headerAvatarImg').src = currentUser.profile_photo;
+                document.getElementById('avatarHeadImg').src = currentUser.profile_photo;
+            }
+            
+            loadSportsData();
+            updateDashboard();
+            updateAvatar();
+        }
+
+        function switchTab(tabName) {
+            // Update active tab
+            document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+
+            // Hide all views
+            hideAllViews();
+
+            // Show selected view
+            currentView = tabName;
+            document.getElementById(`${tabName}Tab`).classList.remove('hidden');
+            
+            if (tabName === 'dashboard') {
+                updateDashboard();
+            } else if (tabName === 'sports') {
+                loadSportsData();
+            } else if (tabName === 'quiz') {
+                loadQuizMap();
+            }
+        }
+
+        function hideAllViews() {
+            document.querySelectorAll('#dashboardTab, #sportsTab, #quizTab, #leaderboardTab, #profileTab, #sportDetailView, #lessonDetailView, #assessmentView, #skillsView, #sportHistoryView, #quizLevelView').forEach(view => {
+                view.classList.add('hidden');
+            });
+        }
+
+        function loadQuizMap() {
+            const quizMap = document.getElementById('quizMap');
+            quizMap.innerHTML = '';
+
+            // Update quiz stats
+            document.getElementById('currentQuizLevel').textContent = currentQuizLevel;
+            document.getElementById('completedQuizLevels').textContent = completedQuizLevels.length;
+
+            // Generate 100 quiz levels
+            for (let i = 1; i <= 100; i++) {
+                const quizLevel = document.createElement('div');
+                quizLevel.className = 'quiz-level';
+                
+                if (completedQuizLevels.includes(i)) {
+                    quizLevel.classList.add('completed');
+                } else if (i === currentQuizLevel) {
+                    quizLevel.classList.add('available');
+                } else if (i > currentQuizLevel) {
+                    quizLevel.classList.add('locked');
+                } else {
+                    quizLevel.classList.add('available');
+                }
+                
+                quizLevel.textContent = i;
+                
+                if (!quizLevel.classList.contains('locked')) {
+                    quizLevel.addEventListener('click', () => {
+                        startQuizLevel(i);
+                    });
+                }
+                
+                quizMap.appendChild(quizLevel);
+            }
+        }
+
+        function startQuizLevel(level) {
+            currentQuizLevel = level;
+            currentQuizQuestion = 0;
+            quizAnswers = [];
+            
+            // Generate quiz questions for this level
+            generateQuizQuestions(level);
+            
+            hideAllViews();
+            document.getElementById('quizLevelView').classList.remove('hidden');
+            
+            document.getElementById('quizLevelTitle').textContent = `Level ${level} Quiz`;
+            
+            // Show quiz introduction
+            showQuizIntro();
+        }
+
+        function generateQuizQuestions(level) {
+            quizQuestions = [];
+            
+            // Generate 10 questions, one from each topic
+            QUIZ_TOPICS.forEach((topic, index) => {
+                const sampleQuestions = SAMPLE_QUIZ_QUESTIONS[topic];
+                if (sampleQuestions && sampleQuestions.length > 0) {
+                    // For demo, use the sample question
+                    quizQuestions.push({
+                        topic: topic,
+                        ...sampleQuestions[0]
+                    });
+                } else {
+                    // Generate a placeholder question
+                    quizQuestions.push({
+                        topic: topic,
+                        question: `What is an important aspect of ${topic}?`,
+                        options: [
+                            "Option A - Basic understanding",
+                            "Option B - Advanced knowledge", 
+                            "Option C - Expert application",
+                            "Option D - Comprehensive mastery"
+                        ],
+                        correct: 1,
+                        explanation: `This question tests your understanding of ${topic} concepts.`
+                    });
+                }
+            });
+        }
+
+        function showQuizIntro() {
+            const quizIntro = document.getElementById('quizIntro');
+            quizIntro.innerHTML = `
+                <h3>Level ${currentQuizLevel} - PE Knowledge Challenge</h3>
+                <p>Test your understanding across 10 core PE topics. Each question covers a different area of physical education knowledge.</p>
+                <p>Complete all 10 questions to earn 1 house point!</p>
+                <div class="author-citation">Educational content by PE Learning Hub Team</div>
+            `;
+            
+            const quizContainer = document.getElementById('quizQuestionContainer');
+            quizContainer.innerHTML = `
+                <div style="text-align: center; padding: 2rem;">
+                    <button class="quiz-btn" onclick="startQuizQuestions()">Begin Quiz</button>
+                </div>
+            `;
+        }
+
+        function startQuizQuestions() {
+            currentQuizQuestion = 0;
+            showQuizQuestion();
+        }
+
+        function showQuizQuestion() {
+            if (currentQuizQuestion >= quizQuestions.length) {
+                showQuizResults();
+                return;
+            }
+
+            const question = quizQuestions[currentQuizQuestion];
+            document.getElementById('currentQuestionNum').textContent = currentQuizQuestion + 1;
+            
+            const quizContainer = document.getElementById('quizQuestionContainer');
+            quizContainer.innerHTML = `
+                <div class="question-header">
+                    <div class="question-topic">${question.topic}</div>
+                    <div class="question-text">${question.question}</div>
+                </div>
+                
+                <div class="answer-options">
+                    ${question.options.map((option, index) => `
+                        <div class="answer-option" data-answer="${index}">
+                            <div class="answer-letter">${String.fromCharCode(65 + index)}</div>
+                            <div class="answer-text">${option}</div>
+                        </div>
+                    `).join('')}
+                </div>
+                
+                <div class="feedback-container" id="feedbackContainer">
+                    <div class="feedback-title" id="feedbackTitle"></div>
+                    <div class="feedback-text" id="feedbackText"></div>
+                </div>
+                
+                <div class="quiz-actions">
+                    <button class="quiz-btn" id="nextQuestionBtn" onclick="nextQuestion()" style="display: none;">
+                        ${currentQuizQuestion === quizQuestions.length - 1 ? 'Finish Quiz' : 'Next Question'}
+                    </button>
+                </div>
+            `;
+
+            // Add click handlers for answer options
+            document.querySelectorAll('.answer-option').forEach(option => {
+                option.addEventListener('click', (e) => {
+                    const selectedAnswer = parseInt(e.target.closest('.answer-option').dataset.answer);
+                    selectAnswer(selectedAnswer);
+                });
+            });
+        }
+
+        function selectAnswer(selectedAnswer) {
+            const question = quizQuestions[currentQuizQuestion];
+            const isCorrect = selectedAnswer === question.correct;
+            
+            // Store answer
+            quizAnswers[currentQuizQuestion] = {
+                selected: selectedAnswer,
+                correct: question.correct,
+                isCorrect: isCorrect
+            };
+
+            // Update UI
+            document.querySelectorAll('.answer-option').forEach((option, index) => {
+                option.style.pointerEvents = 'none';
+                
+                if (index === question.correct) {
+                    option.classList.add('correct');
+                } else if (index === selectedAnswer && !isCorrect) {
+                    option.classList.add('incorrect');
+                }
+            });
+
+            // Show feedback
+            const feedbackContainer = document.getElementById('feedbackContainer');
+            const feedbackTitle = document.getElementById('feedbackTitle');
+            const feedbackText = document.getElementById('feedbackText');
+            
+            feedbackContainer.classList.add('show');
+            feedbackContainer.classList.add(isCorrect ? 'correct' : 'incorrect');
+            feedbackTitle.classList.add(isCorrect ? 'correct' : 'incorrect');
+            feedbackTitle.textContent = isCorrect ? 'Correct!' : 'Incorrect';
+            feedbackText.textContent = question.explanation;
+
+            // Show next button
+            document.getElementById('nextQuestionBtn').style.display = 'inline-block';
+        }
+
+        function nextQuestion() {
+            currentQuizQuestion++;
+            showQuizQuestion();
+        }
+
+        async function showQuizResults() {
+            const correctAnswers = quizAnswers.filter(answer => answer.isCorrect).length;
+            const totalQuestions = quizQuestions.length;
+            const percentage = Math.round((correctAnswers / totalQuestions) * 100);
+            
+            const quizContainer = document.getElementById('quizQuestionContainer');
+            quizContainer.innerHTML = `
+                <div style="text-align: center; padding: 2rem;">
+                    <h3 style="color: var(--text-light); margin-bottom: 1rem;">Quiz Complete!</h3>
+                    <div style="font-size: 3rem; margin: 1rem 0;">${percentage >= 70 ? '🎉' : '📚'}</div>
+                    <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                        You scored ${correctAnswers} out of ${totalQuestions} (${percentage}%)
+                    </p>
+                    
+                    ${percentage >= 70 ? `
+                        <div style="background: rgba(40, 167, 69, 0.1); border: 2px solid var(--accent-secondary); border-radius: 12px; padding: 1.5rem; margin: 1rem 0;">
+                            <h4 style="color: var(--accent-secondary); margin-bottom: 0.5rem;">Congratulations!</h4>
+                            <p style="color: var(--text-light);">You earned 1 house point for completing this quiz!</p>
+                        </div>
+                    ` : `
+                        <div style="background: rgba(255, 193, 7, 0.1); border: 2px solid var(--house-yellow); border-radius: 12px; padding: 1.5rem; margin: 1rem 0;">
+                            <h4 style="color: var(--house-yellow); margin-bottom: 0.5rem;">Keep Learning!</h4>
+                            <p style="color: var(--text-light);">You need 70% or higher to earn house points. Try again!</p>
+                        </div>
+                    `}
+                    
+                    <div style="margin-top: 2rem;">
+                        <button class="quiz-btn" onclick="switchTab('quiz')">Back to Quiz Map</button>
+                        ${percentage < 70 ? '<button class="quiz-btn secondary" onclick="startQuizLevel(' + currentQuizLevel + ')">Try Again</button>' : ''}
+                    </div>
+                </div>
+            `;
+
+            // Award house point if passed
+            if (percentage >= 70 && !completedQuizLevels.includes(currentQuizLevel)) {
+                completedQuizLevels.push(currentQuizLevel);
+                
+                // Update user's house points and quiz progress
+                if (window.dataSdk && currentUser) {
+                    const userRecord = userData.find(record => record.user_id === (currentUser.student_id || currentUser.user_id));
+                    if (userRecord) {
+                        const newHousePoints = (userRecord.house_points || 0) + 1;
+                        const newQuizProgress = JSON.stringify({
+                            currentLevel: Math.max(currentQuizLevel + 1, currentQuizLevel),
+                            completed: completedQuizLevels
+                        });
+
+                        await window.dataSdk.update({
+                            ...userRecord,
+                            house_points: newHousePoints,
+                            quiz_progress: newQuizProgress
+                        });
+
+                        // Update current user data
+                        currentUser.house_points = newHousePoints;
+                        localStorage.setItem('peHubUser', JSON.stringify(currentUser));
+                    }
+                }
+            }
+        }
+
+        function loadSportsData() {
+            const sportsContainer = document.getElementById('sportsTab');
+            sportsContainer.innerHTML = '';
+
+            Object.entries(SPORTS_DATA).forEach(([sportKey, sport]) => {
+                const sportCard = document.createElement('div');
+                sportCard.className = 'sport-card';
+                sportCard.innerHTML = `
+                    <div class="sport-icon">${sport.icon}</div>
+                    <div class="sport-name">${sport.name}</div>
+                    <div class="sport-progress">0/10 lessons completed</div>
+                `;
+                sportCard.addEventListener('click', () => {
+                    currentSport = sportKey;
+                    showSportDetail();
+                });
+                sportsContainer.appendChild(sportCard);
+            });
+        }
+
+        function showSportDetail() {
+            if (!currentSport) return;
+            
+            hideAllViews();
+            document.getElementById('sportDetailView').classList.remove('hidden');
+            
+            const sport = SPORTS_DATA[currentSport];
+            document.getElementById('sportDetailTitle').textContent = sport.name;
+            
+            loadLessons();
+        }
+
+        function loadLessons() {
+            const lessonGrid = document.getElementById('lessonGrid');
+            lessonGrid.innerHTML = '';
+
+            // Load lessons 1-10
+            for (let i = 1; i <= 10; i++) {
+                const lesson = LESSON_STRUCTURE[i];
+                const lessonTile = document.createElement('div');
+                lessonTile.className = `lesson-tile ${lesson.type}`;
+                
+                lessonTile.innerHTML = `
+                    <div class="lesson-number">${i}</div>
+                    <div class="lesson-title">${lesson.title}</div>
+                    <div class="lesson-type">${lesson.description}</div>
+                    <div class="lesson-status ${i > 1 ? 'locked' : ''}">
+                        ${i > 1 ? '🔒' : '✓'}
+                    </div>
+                `;
+                
+                lessonTile.addEventListener('click', () => {
+                    if (i === 1 || i <= 10) { // For demo, allow access to all lessons
+                        currentLesson = i;
+                        if (lesson.type === 'assessment') {
+                            showAssessmentView();
+                        } else {
+                            showLessonDetail();
+                        }
+                    }
+                });
+                
+                lessonGrid.appendChild(lessonTile);
+            }
+
+            // Add Skills tile (lesson 11)
+            const skillsTile = document.createElement('div');
+            skillsTile.className = 'lesson-tile skills';
+            skillsTile.innerHTML = `
+                <div class="lesson-number">📊</div>
+                <div class="lesson-title">SKILLS</div>
+                <div class="lesson-type">Teacher evaluation (0-20 points)</div>
+                <div class="lesson-status locked">🔒</div>
+            `;
+            skillsTile.addEventListener('click', () => {
+                if (currentUser.user_type === 'teacher') {
+                    showSkillsView();
+                } else {
+                    showNotification('Skills assessment is only available to teachers', 'info');
+                }
+            });
+            lessonGrid.appendChild(skillsTile);
+
+            // Add History tile (lesson 12)
+            const historyTile = document.createElement('div');
+            historyTile.className = 'lesson-tile history';
+            historyTile.innerHTML = `
+                <div class="lesson-number">📚</div>
+                <div class="lesson-title">Sport History</div>
+                <div class="lesson-type">Origins and evolution + Quiz</div>
+                <div class="lesson-status">✓</div>
+            `;
+            historyTile.addEventListener('click', () => {
+                showSportHistoryView();
+            });
+            lessonGrid.appendChild(historyTile);
+        }
+
+        async function showLessonDetail() {
+            if (!currentLesson) return;
+            
+            hideAllViews();
+            document.getElementById('lessonDetailView').classList.remove('hidden');
+            
+            const lesson = LESSON_STRUCTURE[currentLesson];
+            document.getElementById('lessonTitle').textContent = `Lesson ${currentLesson}: ${lesson.title}`;
+            
+            const lessonContent = document.getElementById('lessonContent');
+            
+            // Show loading state for better UX (sub-2-second load times)
+            lessonContent.innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    Loading lesson content...
+                </div>
+            `;
+            
+            try {
+                // Load dynamic content from content management system
+                const content = await CONTENT_MANAGER.loadLessonContent(currentSport, currentLesson);
+                
+                // Render lesson with loaded content
+                lessonContent.innerHTML = `
+                    <div style="background: var(--surface-light); border-radius: 16px; padding: 2rem; color: var(--text-light);">
+                        <h3>${content.title}</h3>
+                        <p style="color: var(--text-secondary); margin: 1rem 0;">${lesson.description}</p>
+                        
+                        <div style="margin: 1.5rem 0;">
+                            <h4 style="color: var(--text-light); margin-bottom: 0.75rem;">Learning Objectives:</h4>
+                            <ul style="color: var(--text-secondary); padding-left: 1.5rem;">
+                                ${content.objectives.map(obj => `<li>${obj}</li>`).join('')}
+                            </ul>
+                        </div>
+                        
+                        <div style="margin: 1.5rem 0;">
+                            <h4 style="color: var(--text-light); margin-bottom: 0.75rem;">Activities:</h4>
+                            ${content.activities.map(activity => `
+                                <div style="background: rgba(0,0,0,0.05); padding: 1rem; border-radius: 8px; margin-bottom: 0.5rem;">
+                                    <strong>${activity.name}</strong> (${activity.duration})<br>
+                                    <span style="color: var(--text-secondary);">${activity.description}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                        
+                        <div style="margin: 1.5rem 0;">
+                            <h4 style="color: var(--text-light); margin-bottom: 0.75rem;">Equipment Needed:</h4>
+                            <p style="color: var(--text-secondary);">${content.equipment.join(', ')}</p>
+                        </div>
+                        
+                        <div style="margin: 1.5rem 0;">
+                            <h4 style="color: var(--text-light); margin-bottom: 0.75rem;">Safety Notes:</h4>
+                            <ul style="color: var(--text-secondary); padding-left: 1.5rem;">
+                                ${content.safetyNotes.map(note => `<li>${note}</li>`).join('')}
+                            </ul>
+                        </div>
+                        
+                        <div style="margin-top: 2rem; text-align: center;">
+                            <button class="assessment-btn" onclick="markLessonComplete(${currentLesson})">
+                                Complete Lesson
+                            </button>
+                        </div>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Failed to load lesson content:', error);
+                lessonContent.innerHTML = `
+                    <div style="background: var(--surface-light); border-radius: 16px; padding: 2rem; color: var(--text-light); text-align: center;">
+                        <h3>Content Loading Error</h3>
+                        <p style="color: var(--text-secondary); margin: 1rem 0;">Unable to load lesson content. Please try again.</p>
+                        <button class="assessment-btn" onclick="showLessonDetail()">Retry</button>
+                    </div>
+                `;
+            }
+        }
+
+        async function markLessonComplete(lessonNumber) {
+            if (!currentUser || !currentSport) return;
+            
+            // Update user progress
+            const progressData = JSON.parse(currentUser.sport_progress || '{}');
+            if (!progressData[currentSport]) {
+                progressData[currentSport] = {};
+            }
+            progressData[currentSport][`lesson_${lessonNumber}`] = {
+                completed: true,
+                completedAt: new Date().toISOString()
+            };
+            
+            // Save to database with optimistic updates
+            if (window.dataSdk) {
+                const userRecord = userData.find(record => record.user_id === currentUser.student_id);
+                if (userRecord) {
+                    await window.dataSdk.update({
+                        ...userRecord,
+                        sport_progress: JSON.stringify(progressData)
+                    });
+                }
+            }
+            
+            showNotification(`Lesson ${lessonNumber} completed! Great work!`, 'success');
+            showSportDetail(); // Return to sport overview
+        }
+
+        function showAssessmentView() {
+            hideAllViews();
+            document.getElementById('assessmentView').classList.remove('hidden');
+            
+            const lesson = LESSON_STRUCTURE[currentLesson];
+            document.getElementById('assessmentTitle').textContent = lesson.title;
+            document.getElementById('assessmentSubtitle').textContent = lesson.description;
+            
+            loadAssessmentSkills();
+        }
+
+        function loadAssessmentSkills() {
+            const assessmentContent = document.getElementById('assessmentContent');
+            assessmentContent.innerHTML = '';
+
+            Object.entries(ASSESSMENT_SKILLS).forEach(([skillKey, skill]) => {
+                const skillDiv = document.createElement('div');
+                skillDiv.className = 'skill-assessment';
+                
+                skillDiv.innerHTML = `
+                    <div class="skill-title">${skill.title}</div>
+                    <div class="skill-description">${skill.description}</div>
+                    <div class="skill-levels" data-skill="${skillKey}">
+                        ${Object.entries(SKILL_LEVELS).map(([level, levelData]) => `
+                            <div class="skill-level" data-level="${level}">
+                                <div class="level-number">${level}</div>
+                                <div class="level-name">${levelData.name}</div>
+                                <div class="level-description">${levelData.description}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                
+                assessmentContent.appendChild(skillDiv);
+            });
+
+            // Add click handlers for skill levels
+            document.querySelectorAll('.skill-level').forEach(level => {
+                level.addEventListener('click', (e) => {
+                    const skillKey = e.target.closest('.skill-levels').dataset.skill;
+                    const levelValue = e.target.closest('.skill-level').dataset.level;
+                    
+                    // Remove previous selection
+                    e.target.closest('.skill-levels').querySelectorAll('.skill-level').forEach(l => {
+                        l.classList.remove('selected');
+                    });
+                    
+                    // Add selection
+                    e.target.closest('.skill-level').classList.add('selected');
+                    
+                    // Store assessment
+                    currentAssessment[skillKey] = parseInt(levelValue);
+                });
+            });
+        }
+
+        async function saveAssessment() {
+            const skillCount = Object.keys(ASSESSMENT_SKILLS).length;
+            const assessedCount = Object.keys(currentAssessment).length;
+            
+            if (assessedCount < skillCount) {
+                showNotification('Please assess all skills before saving', 'error');
+                return;
+            }
+
+            const saveBtn = document.getElementById('saveAssessment');
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'Saving...';
+
+            // Calculate total points (for self-assessment, no house points awarded)
+            const totalPoints = Object.values(currentAssessment).reduce((sum, level) => sum + level, 0);
+            
+            // Save assessment data
+            if (window.dataSdk && currentUser) {
+                const assessmentRecord = {
+                    user_id: currentUser.student_id || currentUser.user_id,
+                    sport: currentSport,
+                    lesson: currentLesson,
+                    assessment_data: JSON.stringify(currentAssessment),
+                    total_points: totalPoints,
+                    assessment_type: 'self',
+                    created_at: new Date().toISOString()
+                };
+
+                const result = await window.dataSdk.create(assessmentRecord);
+                if (result.isOk) {
+                    showNotification('Assessment saved successfully!', 'success');
+                    showSportDetail();
+                } else {
+                    showNotification('Failed to save assessment', 'error');
+                }
+            }
+
+            saveBtn.disabled = false;
+            saveBtn.textContent = 'Save Assessment';
+            currentAssessment = {};
+        }
+
+        function showSkillsView() {
+            hideAllViews();
+            document.getElementById('skillsView').classList.remove('hidden');
+            
+            const skillsContent = document.getElementById('skillsContent');
+            skillsContent.innerHTML = `
+                <div style="background: var(--surface-light); border-radius: 16px; padding: 2rem; color: var(--text-light); text-align: center;">
+                    <h3>Teacher Skills Assessment</h3>
+                    <p style="color: var(--text-secondary); margin: 1rem 0;">
+                        This is where teachers can evaluate student performance and award house points (0-20).
+                    </p>
+                    <p><strong>Scoring Breakdown:</strong></p>
+                    <ul style="text-align: left; margin: 1rem 0;">
+                        <li>3 Motor Skills: 12 points (4 points each)</li>
+                        <li>1 Methodology Skill: 4 points</li>
+                        <li>1 Social Skill: 4 points</li>
+                    </ul>
+                    <div style="margin-top: 2rem;">
+                        <button class="assessment-btn" onclick="showNotification('Teacher assessment interface coming soon!', 'info')">
+                            Start Teacher Assessment
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function showSportHistoryView() {
+            hideAllViews();
+            document.getElementById('sportHistoryView').classList.remove('hidden');
+            
+            const sport = SPORTS_DATA[currentSport];
+            document.getElementById('historyTitle').textContent = `${sport.name} History`;
+            
+            const historyContent = document.getElementById('historyContent');
+            historyContent.innerHTML = `
+                <div style="background: var(--surface-light); border-radius: 16px; padding: 2rem; margin-bottom: 2rem;">
+                    <h3 style="color: var(--text-light); margin-bottom: 1rem;">Origins and Evolution</h3>
+                    <p style="color: var(--text-secondary); line-height: 1.6; margin-bottom: 1rem;">
+                        ${sport.name} has a rich history spanning many decades. The sport evolved from simple recreational activities 
+                        into the organized, competitive sport we know today.
+                    </p>
+                    <p style="color: var(--text-secondary); line-height: 1.6; margin-bottom: 1rem;">
+                        Key developments include the establishment of official rules, international governing bodies, 
+                        and inclusion in major sporting events.
+                    </p>
+                    <div class="author-citation">
+                        - PE Learning Hub Educational Team
+                    </div>
+                </div>
+                
+                <div style="background: var(--surface-light); border-radius: 16px; padding: 2rem;">
+                    <h3 style="color: var(--text-light); margin-bottom: 1rem;">History Quiz</h3>
+                    <p style="color: var(--text-secondary); margin-bottom: 2rem;">
+                        Test your knowledge about ${sport.name} history! Complete this 10-question quiz to earn 1 house point.
+                    </p>
+                    <div style="text-align: center;">
+                        <button class="assessment-btn" onclick="showNotification('History quiz coming soon!', 'info')">
+                            Start History Quiz
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function updateDashboard() {
+            if (!currentUser) return;
+
+            // Update progress rings
+            updateProgressRing('overallProgress', 'overallProgressText', 15);
+            
+            // Update statistics
+            document.getElementById('completedSports').textContent = '2';
+            document.getElementById('completedQuizzes').textContent = '12';
+            
+            // Update house points and level
+            const housePoints = currentUser.house_points || 0;
+            const avatarLevel = Math.floor(housePoints / 10) + 1;
+            
+            document.getElementById('housePointsDisplay').textContent = housePoints;
+            document.getElementById('avatarLevel').textContent = Math.min(avatarLevel, 20);
+            
+            updateAvatar();
+        }
+
+        function updateAvatar() {
+            if (!currentUser) return;
+            
+            const housePoints = currentUser.house_points || 0;
+            const level = Math.min(Math.floor(housePoints / 10) + 1, 20);
+            const avatarBody = document.getElementById('avatarBody');
+            const avatarHead = document.getElementById('avatarHead');
+            
+            // 20-level progression system: Level 1 (feet/legs) -> Level 20 (full body + head)
+            const bodyParts = getAvatarBodyParts(level);
+            const isMale = currentUser.gender === 'male';
+            
+            // Update avatar display based on progression
+            avatarBody.innerHTML = renderAvatarBody(level, isMale, bodyParts);
+            
+            // Auto-crop student photo to circular head (Level 10+)
+            if (level >= 10 && currentUser.profile_photo) {
+                avatarHead.style.display = 'block';
+                const headImg = document.getElementById('avatarHeadImg');
+                if (headImg) {
+                    headImg.src = currentUser.profile_photo;
+                    headImg.style.borderRadius = '50%';
+                    headImg.style.objectFit = 'cover';
+                }
+            } else {
+                avatarHead.style.display = level >= 15 ? 'block' : 'none';
+            }
+            
+            // Smooth animation transitions
+            avatarBody.style.transition = 'all 0.5s ease-in-out';
+            
+            // Update avatar body color based on level with high contrast for accessibility
+            const hue = Math.min(level * 15, 300);
+            const saturation = Math.min(50 + level * 2, 80);
+            const lightness = Math.max(40, 60 - level);
+            avatarBody.style.background = `linear-gradient(135deg, hsl(${hue}, ${saturation}%, ${lightness}%) 0%, hsl(${hue + 30}, ${saturation}%, ${lightness - 10}%) 100%)`;
+        }
+
+        function getAvatarBodyParts(level) {
+            // Progressive body part revelation: 20 levels total
+            const parts = {
+                feet: level >= 1,
+                legs: level >= 3,
+                waist: level >= 5,
+                torso: level >= 7,
+                arms: level >= 9,
+                shoulders: level >= 11,
+                neck: level >= 13,
+                head_outline: level >= 15,
+                face_features: level >= 17,
+                full_detail: level >= 19
+            };
+            return parts;
+        }
+
+        function renderAvatarBody(level, isMale, parts) {
+            // Sport-specific animations and poses based on current sport
+            const sportPoses = {
+                basketball: isMale ? '🏀' : '⛹️‍♀️',
+                football: isMale ? '⚽' : '⚽',
+                handball: isMale ? '🤾‍♂️' : '🤾‍♀️',
+                default: isMale ? '🏃‍♂️' : '🏃‍♀️'
+            };
+            
+            const currentPose = currentSport ? (sportPoses[currentSport] || sportPoses.default) : sportPoses.default;
+            
+            // Progressive revelation based on level
+            if (level < 5) {
+                return `<div style="font-size: 2rem; opacity: 0.7;">👟</div>`; // Feet/legs only
+            } else if (level < 10) {
+                return `<div style="font-size: 3rem; opacity: 0.8;">🦵</div>`; // Lower body
+            } else if (level < 15) {
+                return `<div style="font-size: 4rem; opacity: 0.9;">${currentPose}</div>`; // Most of body
+            } else {
+                return `<div style="font-size: 4rem;">${currentPose}</div>`; // Full body
+            }
+        }
+
+        function updateProgressRing(ringId, textId, percentage) {
+            const ring = document.getElementById(ringId);
+            const text = document.getElementById(textId);
+            const circumference = 326.73;
+            const offset = circumference - (percentage / 100) * circumference;
+            
+            ring.style.strokeDashoffset = offset;
+            text.textContent = `${percentage}%`;
+        }
+
+        function toggleTheme() {
+            isDarkMode = !isDarkMode;
+            document.body.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
+            document.getElementById('themeToggle').textContent = isDarkMode ? '☀️' : '🌙';
+            
+            // Persist theme preference in localStorage for immediate loading
+            localStorage.setItem('peHubTheme', isDarkMode ? 'dark' : 'light');
+            
+            // Update user preference in database
+            if (currentUser && window.dataSdk) {
+                const userRecord = userData.find(record => record.user_id === (currentUser.student_id || currentUser.full_name));
+                if (userRecord) {
+                    window.dataSdk.update({
+                        ...userRecord,
+                        dark_mode: isDarkMode
+                    });
+                }
+            }
+            
+            // Ensure parity - same information in both modes
+            updateThemeSpecificElements();
+        }
+
+        function updateThemeSpecificElements() {
+            // Ensure all information is visible in both themes with proper contrast
+            const isDark = document.body.getAttribute('data-theme') === 'dark';
+            
+            // Update house indicators for better visibility
+            document.querySelectorAll('.house-indicator').forEach(indicator => {
+                if (isDark) {
+                    indicator.style.border = '2px solid rgba(255,255,255,0.3)';
+                } else {
+                    indicator.style.border = '2px solid rgba(0,0,0,0.1)';
+                }
+            });
+            
+            // Update progress rings for theme
+            document.querySelectorAll('.progress-ring .progress').forEach(ring => {
+                ring.style.stroke = isDark ? '#8B5CF6' : '#667eea';
+            });
+        }
+
+        function initializeTheme() {
+            // Load theme preference from localStorage first for immediate application
+            const savedTheme = localStorage.getItem('peHubTheme');
+            if (savedTheme) {
+                isDarkMode = savedTheme === 'dark';
+                document.body.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
+                document.getElementById('themeToggle').textContent = isDarkMode ? '☀️' : '🌙';
+            }
+            
+            // Then load from user data when available
+            if (currentUser && currentUser.dark_mode !== undefined) {
+                isDarkMode = currentUser.dark_mode;
+                document.body.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
+                document.getElementById('themeToggle').textContent = isDarkMode ? '☀️' : '🌙';
+                localStorage.setItem('peHubTheme', isDarkMode ? 'dark' : 'light');
+            }
+            
+            updateThemeSpecificElements();
+        }
+
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        // Teacher Dashboard Functions
+        function setupTeacherNavigation() {
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.addEventListener('click', (e) => switchTeacherTab(e.target.dataset.tab));
+            });
+        }
+
+        function switchTeacherTab(tabName) {
+            // Update active tab
+            document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+
+            // Hide all teacher views
+            document.querySelectorAll('.teacher-dashboard').forEach(view => {
+                view.classList.add('hidden');
+            });
+
+            // Show selected view
+            document.getElementById(`${tabName}Tab`).classList.remove('hidden');
+            
+            // Load data for specific tabs
+            if (tabName === 'teacher-overview') {
+                loadClassStudents();
+            } else if (tabName === 'teacher-assessments') {
+                loadAssessmentData();
+            } else if (tabName === 'teacher-students') {
+                loadStudentDetails();
+            }
+        }
+
+        async function loadClassStudents() {
+            const studentsGrid = document.getElementById('studentsGrid');
+            const selectedClass = document.getElementById('teacherClassSelect')?.value || '';
+            
+            studentsGrid.innerHTML = '<div class="loading"><div class="spinner"></div>Loading students...</div>';
+            
+            // Filter students by class if selected
+            const filteredStudents = userData.filter(student => 
+                student.user_type === 'student' && 
+                (selectedClass === '' || student.class_grade === selectedClass)
+            );
+
+            // Generate sample students if none exist
+            const sampleStudents = filteredStudents.length > 0 ? filteredStudents : generateSampleStudents();
+            
+            setTimeout(() => {
+                studentsGrid.innerHTML = '';
+                
+                sampleStudents.forEach(student => {
+                    const studentCard = document.createElement('div');
+                    studentCard.className = 'student-card';
+                    studentCard.innerHTML = `
+                        <div class="student-header">
+                            <div class="student-photo">
+                                ${student.profile_photo ? `<img src="${student.profile_photo}" alt="${student.full_name}">` : '👤'}
+                            </div>
+                            <div class="student-info">
+                                <h4>${student.full_name}</h4>
+                                <p>${student.student_id} • ${student.class_grade}</p>
+                            </div>
+                            <div class="house-indicator ${student.house_team}"></div>
+                        </div>
+                        <div class="student-stats">
+                            <div class="student-stat">
+                                <div class="student-stat-value">${student.house_points || 0}</div>
+                                <div class="student-stat-label">House Points</div>
+                            </div>
+                            <div class="student-stat">
+                                <div class="student-stat-value">${student.avatar_level || 1}</div>
+                                <div class="student-stat-label">Avatar Level</div>
+                            </div>
+                            <div class="student-stat">
+                                <div class="student-stat-value">85%</div>
+                                <div class="student-stat-label">Progress</div>
+                            </div>
+                            <div class="student-stat">
+                                <div class="student-stat-value">12</div>
+                                <div class="student-stat-label">Assessments</div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    studentCard.addEventListener('click', () => {
+                        showStudentDetail(student);
+                    });
+                    
+                    studentsGrid.appendChild(studentCard);
+                });
+            }, 500);
+        }
+
+        function generateSampleStudents() {
+            const sampleNames = [
+                'Emma Johnson', 'Liam Smith', 'Olivia Brown', 'Noah Davis', 'Ava Wilson',
+                'Ethan Moore', 'Sophia Taylor', 'Mason Anderson', 'Isabella Thomas', 'William Jackson',
+                'Mia White', 'James Harris', 'Charlotte Martin', 'Benjamin Thompson', 'Amelia Garcia'
+            ];
+            
+            const classes = ['Year 1C', 'Year 2H', 'Year 3S', 'Year 4B', 'Year 5J', 'Year 6I'];
+            const houses = ['red', 'green', 'yellow', 'blue'];
+            
+            return sampleNames.map((name, index) => ({
+                user_type: 'student',
+                full_name: name,
+                email: `${name.toLowerCase().replace(' ', '.')}@crescendo.edu`,
+                student_id: `STU${(index + 1).toString().padStart(3, '0')}`,
+                class_grade: classes[index % classes.length],
+                house_team: houses[index % houses.length],
+                house_points: Math.floor(Math.random() * 50) + 10,
+                avatar_level: Math.floor(Math.random() * 5) + 1,
+                profile_photo: null
+            }));
+        }
+
+        async function loadAssessmentData() {
+            const assessmentGrid = document.getElementById('assessmentGrid');
+            const selectedClass = document.getElementById('assessmentClassFilter')?.value || '';
+            const selectedSport = document.getElementById('assessmentSportFilter')?.value || '';
+            
+            assessmentGrid.innerHTML = '<div class="loading"><div class="spinner"></div>Loading assessments...</div>';
+            
+            // Filter students for assessment
+            const studentsForAssessment = userData.filter(student => 
+                student.user_type === 'student' && 
+                (selectedClass === '' || student.class_grade === selectedClass)
+            );
+
+            const sampleStudents = studentsForAssessment.length > 0 ? studentsForAssessment : generateSampleStudents();
+            
+            setTimeout(() => {
+                assessmentGrid.innerHTML = '';
+                
+                sampleStudents.slice(0, 6).forEach(student => {
+                    const assessmentItem = document.createElement('div');
+                    assessmentItem.className = 'assessment-item';
+                    assessmentItem.innerHTML = `
+                        <div class="assessment-student-header">
+                            <div class="student-photo">
+                                ${student.profile_photo ? `<img src="${student.profile_photo}" alt="${student.full_name}">` : '👤'}
+                            </div>
+                            <div class="student-info">
+                                <h4>${student.full_name}</h4>
+                                <p>${student.student_id} • ${student.class_grade} • ${student.house_team.charAt(0).toUpperCase() + student.house_team.slice(1)} House</p>
+                            </div>
+                        </div>
+                        
+                        <div class="skills-evaluation">
+                            <div class="skill-input">
+                                <label>Motor Skill 1 (0-4)</label>
+                                <input type="number" min="0" max="4" value="0" onchange="updateSkillTotal(this)">
+                            </div>
+                            <div class="skill-input">
+                                <label>Motor Skill 2 (0-4)</label>
+                                <input type="number" min="0" max="4" value="0" onchange="updateSkillTotal(this)">
+                            </div>
+                            <div class="skill-input">
+                                <label>Motor Skill 3 (0-4)</label>
+                                <input type="number" min="0" max="4" value="0" onchange="updateSkillTotal(this)">
+                            </div>
+                            <div class="skill-input">
+                                <label>Methodology (0-4)</label>
+                                <input type="number" min="0" max="4" value="0" onchange="updateSkillTotal(this)">
+                            </div>
+                            <div class="skill-input">
+                                <label>Social Skills (0-4)</label>
+                                <input type="number" min="0" max="4" value="0" onchange="updateSkillTotal(this)">
+                            </div>
+                        </div>
+                        
+                        <div class="total-score">
+                            <div class="total-score-value">0/20</div>
+                            <div>Total House Points</div>
+                        </div>
+                        
+                        <button class="save-assessment-btn" onclick="saveTeacherAssessment('${student.student_id}', this)">
+                            Save Skills Assessment
+                        </button>
+                    `;
+                    
+                    assessmentGrid.appendChild(assessmentItem);
+                });
+            }, 500);
+        }
+
+        function updateSkillTotal(input) {
+            const assessmentItem = input.closest('.assessment-item');
+            const skillInputs = assessmentItem.querySelectorAll('.skill-input input');
+            let total = 0;
+            
+            skillInputs.forEach(skillInput => {
+                total += parseInt(skillInput.value) || 0;
+            });
+            
+            const totalDisplay = assessmentItem.querySelector('.total-score-value');
+            totalDisplay.textContent = `${total}/20`;
+        }
+
+        async function saveTeacherAssessment(studentId, button) {
+            const assessmentItem = button.closest('.assessment-item');
+            const skillInputs = assessmentItem.querySelectorAll('.skill-input input');
+            const skills = Array.from(skillInputs).map(input => parseInt(input.value) || 0);
+            const total = skills.reduce((sum, skill) => sum + skill, 0);
+            
+            button.disabled = true;
+            button.textContent = 'Saving...';
+            
+            // Save teacher assessment
+            if (window.dataSdk) {
+                const assessmentRecord = {
+                    user_id: `teacher_assessment_${studentId}_${Date.now()}`,
+                    student_id: studentId,
+                    teacher_name: currentUser.full_name,
+                    sport: 'basketball', // Default for demo
+                    motor_skill_1: skills[0],
+                    motor_skill_2: skills[1],
+                    motor_skill_3: skills[2],
+                    methodology: skills[3],
+                    social_skills: skills[4],
+                    total_points: total,
+                    assessment_type: 'teacher_skills',
+                    created_at: new Date().toISOString()
+                };
+
+                const result = await window.dataSdk.create(assessmentRecord);
+                if (result.isOk) {
+                    // Update student's house points
+                    const studentRecord = userData.find(record => record.student_id === studentId);
+                    if (studentRecord) {
+                        const newHousePoints = (studentRecord.house_points || 0) + total;
+                        await window.dataSdk.update({
+                            ...studentRecord,
+                            house_points: newHousePoints
+                        });
+                    }
+                    
+                    showNotification(`Assessment saved! ${total} house points awarded.`, 'success');
+                } else {
+                    showNotification('Failed to save assessment', 'error');
+                }
+            }
+            
+            button.disabled = false;
+            button.textContent = 'Save Skills Assessment';
+        }
+
+        async function loadStudentDetails() {
+            const studentDetailsGrid = document.getElementById('studentDetailsGrid');
+            
+            studentDetailsGrid.innerHTML = '<div class="loading"><div class="spinner"></div>Loading student data...</div>';
+            
+            const allStudents = userData.filter(student => student.user_type === 'student');
+            const sampleStudents = allStudents.length > 0 ? allStudents : generateSampleStudents();
+            
+            setTimeout(() => {
+                studentDetailsGrid.innerHTML = '';
+                
+                sampleStudents.slice(0, 8).forEach(student => {
+                    const studentDetailCard = document.createElement('div');
+                    studentDetailCard.className = 'student-detail-card';
+                    studentDetailCard.innerHTML = `
+                        <div class="student-detail-header">
+                            <div class="student-detail-photo">
+                                ${student.profile_photo ? `<img src="${student.profile_photo}" alt="${student.full_name}">` : '👤'}
+                            </div>
+                            <div class="student-info">
+                                <h4>${student.full_name}</h4>
+                                <p>${student.student_id} • ${student.class_grade}</p>
+                                <p>${student.house_team.charAt(0).toUpperCase() + student.house_team.slice(1)} House</p>
+                            </div>
+                        </div>
+                        
+                        <div class="student-progress-section">
+                            <h4>Assessment Progress</h4>
+                            <div class="progress-items">
+                                <div class="progress-item">
+                                    <span class="progress-item-name">Self-Assessments</span>
+                                    <span class="progress-item-value">8/10</span>
+                                </div>
+                                <div class="progress-item">
+                                    <span class="progress-item-name">Skills Evaluations</span>
+                                    <span class="progress-item-value">6/10</span>
+                                </div>
+                                <div class="progress-item">
+                                    <span class="progress-item-name">Quiz Levels</span>
+                                    <span class="progress-item-value">15/100</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="student-progress-section">
+                            <h4>Performance Stats</h4>
+                            <div class="progress-items">
+                                <div class="progress-item">
+                                    <span class="progress-item-name">House Points</span>
+                                    <span class="progress-item-value">${student.house_points || 0}</span>
+                                </div>
+                                <div class="progress-item">
+                                    <span class="progress-item-name">Avatar Level</span>
+                                    <span class="progress-item-value">${student.avatar_level || 1}</span>
+                                </div>
+                                <div class="progress-item">
+                                    <span class="progress-item-name">Overall Progress</span>
+                                    <span class="progress-item-value">75%</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    studentDetailsGrid.appendChild(studentDetailCard);
+                });
+            }, 500);
+        }
+
+        function searchStudents() {
+            const searchTerm = document.getElementById('studentSearchInput').value.toLowerCase();
+            const studentCards = document.querySelectorAll('.student-detail-card');
+            
+            studentCards.forEach(card => {
+                const studentName = card.querySelector('h4').textContent.toLowerCase();
+                const studentId = card.querySelector('p').textContent.toLowerCase();
+                
+                if (studentName.includes(searchTerm) || studentId.includes(searchTerm)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        function showStudentDetail(student) {
+            showNotification(`Viewing detailed profile for ${student.full_name}`, 'info');
+        }
+
+        // Report Generation Functions
+        function generateClassReport() {
+            const selectedClass = document.getElementById('reportClassSelect').value;
+            if (!selectedClass) {
+                showNotification('Please select a class first', 'error');
+                return;
+            }
+            
+            const reportPreview = document.getElementById('reportPreview');
+            reportPreview.innerHTML = `
+                <h3 style="color: var(--text-light); margin-bottom: 1rem;">Class Progress Report - ${selectedClass}</h3>
+                <div style="color: var(--text-secondary); line-height: 1.6;">
+                    <p><strong>Generated:</strong> ${new Date().toLocaleDateString()}</p>
+                    <p><strong>Total Students:</strong> 24</p>
+                    <p><strong>Average House Points:</strong> 28.5</p>
+                    <p><strong>Assessment Completion:</strong> 87%</p>
+                    <p><strong>Top Performers:</strong> Emma Johnson (45 pts), Liam Smith (42 pts)</p>
+                    <p><strong>Areas for Improvement:</strong> Motor skills development, Quiz participation</p>
+                </div>
+            `;
+            
+            showNotification('Class report generated successfully!', 'success');
+        }
+
+        function generateStudentReport() {
+            showNotification('Individual student reports coming soon!', 'info');
+        }
+
+        function generateHouseReport() {
+            const reportPreview = document.getElementById('reportPreview');
+            reportPreview.innerHTML = `
+                <h3 style="color: var(--text-light); margin-bottom: 1rem;">House Points Summary Report</h3>
+                <div style="color: var(--text-secondary); line-height: 1.6;">
+                    <p><strong>Generated:</strong> ${new Date().toLocaleDateString()}</p>
+                    <p><strong>Current Standings:</strong></p>
+                    <ul style="margin: 1rem 0; padding-left: 2rem;">
+                        <li>🥇 Yellow House: 1,320 points (48 students)</li>
+                        <li>🥈 Blue House: 1,290 points (46 students)</li>
+                        <li>🥉 Red House: 1,250 points (45 students)</li>
+                        <li>4th Green House: 1,180 points (42 students)</li>
+                    </ul>
+                    <p><strong>Average per Student:</strong> Yellow: 27.5, Blue: 28.0, Red: 27.8, Green: 28.1</p>
+                </div>
+            `;
+            
+            showNotification('House report generated successfully!', 'success');
+        }
+
+        function exportClassReport() {
+            showNotification('PDF export functionality coming soon!', 'info');
+        }
+
+        function exportStudentReport() {
+            showNotification('PDF export functionality coming soon!', 'info');
+        }
+
+        function exportHouseReport() {
+            showNotification('PDF export functionality coming soon!', 'info');
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', initializeApp);
+    </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99dc586f65c5abd7',t:'MTc2MzAxNjczNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
