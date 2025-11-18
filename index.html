@@ -4,8 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PE Learning Hub</title>
-  <script src="/_sdk/data_sdk.js"></script>
-  <script src="/_sdk/element_sdk.js"></script>
+    <!-- Firebase SDK (optional) -->
+    <script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-firestore-compat.js"></script>
+    <!-- Paste your firebaseConfig into /_sdk/firebase_config.js or set window.FIREBASE_CONFIG before data_sdk loads -->
+    <script src="/_sdk/firebase_config.js"></script>
+    <script src="/_sdk/data_sdk.js"></script>
+    <script src="/_sdk/element_sdk.js"></script>
   <style>
         * {
             margin: 0;
@@ -2766,6 +2771,7 @@
 
         async function handleStudentRegistration(e) {
             e.preventDefault();
+            console.log('[registration] starting student registration');
             
             if (!selectedHouse) {
                 showNotification('Please select a house team', 'error');
@@ -2819,21 +2825,50 @@
                 return;
             }
 
+            // Try to create via dataSdk (Firestore or LocalStorage)
+            let creationSuccess = false;
             if (window.dataSdk) {
-                const result = await window.dataSdk.create({
-                    user_id: formData.student_id,
-                    ...formData
-                });
+                try {
+                    const result = await window.dataSdk.create({
+                        user_id: formData.student_id,
+                        ...formData
+                    });
 
-                if (result.isOk) {
-                    currentUser = formData;
-                    localStorage.setItem('peHubUser', JSON.stringify(currentUser));
-                    showMainApp();
-                    showNotification('Account created successfully!', 'success');
-                } else {
-                    showNotification('Failed to create account', 'error');
+                    if (result && result.isOk) {
+                        console.log('[registration] dataSdk.create succeeded');
+                        creationSuccess = true;
+                    } else {
+                        console.warn('[registration] dataSdk.create returned non-OK', result);
+                    }
+                } catch (err) {
+                    console.error('[registration] dataSdk.create error:', err);
                 }
+            } else {
+                console.warn('[registration] window.dataSdk not available');
             }
+
+            // Fallback: if SDK creation failed or SDK missing, create locally
+            if (!creationSuccess) {
+                console.log('[registration] using local fallback for account creation');
+                currentUser = formData;
+                // Ensure userData is an array (local variable takes precedence)
+                if (!Array.isArray(userData)) {
+                    userData = [];
+                }
+                userData.push(formData);
+                // Also sync to window and localStorage
+                window.userData = userData;
+                localStorage.setItem('peHubUser', JSON.stringify(currentUser));
+                localStorage.setItem('peHubUsers', JSON.stringify(userData));
+                console.log('[registration] account saved to localStorage and userData array');
+            } else {
+                currentUser = formData;
+                localStorage.setItem('peHubUser', JSON.stringify(currentUser));
+            }
+
+            showMainApp();
+            showNotification('Account created successfully!', 'success');
+            console.log('[registration] registration complete, showing main app');
 
             submitBtn.disabled = false;
             submitBtn.textContent = 'Create Student Account';
@@ -4361,5 +4396,5 @@
         // Initialize the application
         document.addEventListener('DOMContentLoaded', initializeApp);
     </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99dc586f65c5abd7',t:'MTc2MzAxNjczNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</body>
 </html>
