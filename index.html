@@ -1978,6 +1978,7 @@
       </div>
      </div>
     </div>
+    <button id="logoutBtn" class="theme-toggle" title="Logout">🔓 Logout</button>
    </header>
    <nav class="nav-tabs"><button class="nav-tab active" data-tab="dashboard">🏠 Dashboard</button> <button class="nav-tab" data-tab="sports">🏃 Sports</button> <button class="nav-tab" data-tab="quiz">🧠 Quiz</button> <button class="nav-tab" data-tab="leaderboard">🏆 Leaderboard</button> <button class="nav-tab" data-tab="profile">⚙️ Profile</button>
    </nav>
@@ -2822,6 +2823,10 @@
             // Theme toggle
             document.getElementById('themeToggle').addEventListener('click', toggleTheme);
 
+            // Logout button (returns to inscription/registration menu)
+            const logoutEl = document.getElementById('logoutBtn');
+            if (logoutEl) logoutEl.addEventListener('click', logout);
+
             // Sports navigation
             document.getElementById('backToSports').addEventListener('click', () => switchTab('sports'));
             document.getElementById('backToSport').addEventListener('click', showSportDetail);
@@ -3372,6 +3377,38 @@
             updateAvatar();
         }
 
+        // Logout: clear current user and return to inscription/registration menu
+        function logout() {
+            currentUser = null;
+            localStorage.removeItem('peHubUser');
+
+            // Hide main app and show auth screen
+            document.getElementById('appContainer').style.display = 'none';
+            document.getElementById('authScreen').classList.remove('hidden');
+
+            // Reset displayed user info
+            const nameEl = document.getElementById('userName');
+            if (nameEl) nameEl.textContent = '';
+            const avatarImg = document.getElementById('headerAvatarImg');
+            if (avatarImg) avatarImg.src = '';
+
+            // Reset forms and UI to default registration state
+            try {
+                const sForm = document.getElementById('studentForm'); if (sForm) sForm.reset();
+                const tForm = document.getElementById('teacherForm'); if (tForm) tForm.reset();
+                document.querySelectorAll('.house-btn').forEach(b => b.classList.remove('selected'));
+                document.querySelectorAll('.user-type-btn').forEach(b => b.classList.remove('active'));
+                const studentBtn = document.querySelector('.user-type-btn[data-type="student"]');
+                if (studentBtn) studentBtn.classList.add('active');
+                currentUserType = 'student';
+                toggleAuthForms();
+            } catch (e) {
+                console.warn('Error resetting forms on logout', e);
+            }
+
+            showNotification('Logged out — returned to registration menu', 'info');
+        }
+
         function switchTab(tabName) {
             // Update active tab
             document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
@@ -3693,15 +3730,43 @@
                 const lesson = LESSON_STRUCTURE[i];
                 const lessonTile = document.createElement('div');
                 lessonTile.className = `lesson-tile ${lesson.type}`;
-                
-                lessonTile.innerHTML = `
-                    <div class="lesson-number">${i}</div>
-                    <div class="lesson-title">${lesson.title}</div>
-                    <div class="lesson-type">${lesson.description}</div>
-                    <div class="lesson-status ${i > 1 ? 'locked' : ''}">
-                        ${i > 1 ? '🔒' : '✓'}
-                    </div>
-                `;
+                // For lessons where students enter their topic, prefer saved topic as tile title
+                const studentEditableLessons = [2,3,4,6,7,8];
+                let displayTitle = lesson.title;
+                let displayType = lesson.description;
+                let statusClass = (i > 1) ? 'locked' : '';
+                let statusIcon = (i > 1) ? '🔒' : '✓';
+
+                try {
+                    const progressData = currentUser && currentUser.sport_progress ? JSON.parse(currentUser.sport_progress || '{}') : {};
+                    const lessonProgress = progressData[currentSport] && progressData[currentSport][`lesson_${i}`] ? progressData[currentSport][`lesson_${i}`] : null;
+                    if (lessonProgress && lessonProgress.selfEvaluation && lessonProgress.selfEvaluation.topic) {
+                        displayTitle = lessonProgress.selfEvaluation.topic;
+                    }
+                    if (lessonProgress && lessonProgress.completed) {
+                        statusClass = '';
+                        statusIcon = '✓';
+                    }
+                } catch (e) {
+                    // ignore parse errors
+                }
+
+                // If this lesson is student-editable, keep tile minimal (title + status)
+                if (studentEditableLessons.includes(i)) {
+                    lessonTile.innerHTML = `
+                        <div class="lesson-number">${i}</div>
+                        <div class="lesson-title">${escapeHtml(displayTitle)}</div>
+                        <div class="lesson-type"></div>
+                        <div class="lesson-status ${statusClass}">${statusIcon}</div>
+                    `;
+                } else {
+                    lessonTile.innerHTML = `
+                        <div class="lesson-number">${i}</div>
+                        <div class="lesson-title">${escapeHtml(displayTitle)}</div>
+                        <div class="lesson-type">${displayType}</div>
+                        <div class="lesson-status ${statusClass}">${statusIcon}</div>
+                    `;
+                }
                 
                 lessonTile.addEventListener('click', () => {
                     if (i === 1 || i <= 10) { // For demo, allow access to all lessons
@@ -3752,15 +3817,15 @@
 
         async function showLessonDetail() {
             if (!currentLesson) return;
-            
+
             hideAllViews();
             document.getElementById('lessonDetailView').classList.remove('hidden');
-            
+
             const lesson = LESSON_STRUCTURE[currentLesson];
             document.getElementById('lessonTitle').textContent = `Lesson ${currentLesson}: ${lesson.title}`;
-            
+
             const lessonContent = document.getElementById('lessonContent');
-            
+
             // Show loading state for better UX (sub-2-second load times)
             lessonContent.innerHTML = `
                 <div class="loading">
@@ -3768,53 +3833,78 @@
                     Loading lesson content...
                 </div>
             `;
-            
+
             try {
                 // Load dynamic content from content management system
                 const content = await CONTENT_MANAGER.loadLessonContent(currentSport, currentLesson);
-                
+
                 // Render lesson with loaded content
-                lessonContent.innerHTML = `
-                    <div style="background: var(--surface-light); border-radius: 16px; padding: 2rem; color: var(--text-light);">
-                        <h3>${content.title}</h3>
-                        <p style="color: var(--text-secondary); margin: 1rem 0;">${lesson.description}</p>
-                        
-                        <div style="margin: 1.5rem 0;">
-                            <h4 style="color: var(--text-light); margin-bottom: 0.75rem;">Learning Objectives:</h4>
-                            <ul style="color: var(--text-secondary); padding-left: 1.5rem;">
-                                ${content.objectives.map(obj => `<li>${obj}</li>`).join('')}
-                            </ul>
-                        </div>
-                        
-                        <div style="margin: 1.5rem 0;">
-                            <h4 style="color: var(--text-light); margin-bottom: 0.75rem;">Activities:</h4>
-                            ${content.activities.map(activity => `
-                                <div style="background: rgba(0,0,0,0.05); padding: 1rem; border-radius: 8px; margin-bottom: 0.5rem;">
-                                    <strong>${activity.name}</strong> (${activity.duration})<br>
-                                    <span style="color: var(--text-secondary);">${activity.description}</span>
+                // For specific practice lessons allow student topic input, self-evaluation and how-to criteria
+                const studentEditableLessons = [2,3,4,6,7,8];
+                const isStudentEditable = studentEditableLessons.includes(currentLesson);
+
+                // For student-editable lessons we do not render the generic content; show only student inputs
+                if (isStudentEditable) {
+                    // Use saved topic if available
+                    let savedTopic = '';
+                    try {
+                        const progressData = currentUser && currentUser.sport_progress ? JSON.parse(currentUser.sport_progress || '{}') : {};
+                        const lessonProgress = progressData[currentSport] && progressData[currentSport][`lesson_${currentLesson}`] ? progressData[currentSport][`lesson_${currentLesson}`] : null;
+                        if (lessonProgress && lessonProgress.selfEvaluation && lessonProgress.selfEvaluation.topic) savedTopic = lessonProgress.selfEvaluation.topic;
+                    } catch (e) { }
+
+                    document.getElementById('lessonTitle').textContent = `Lesson ${currentLesson}: ${savedTopic || lesson.title}`;
+
+                    lessonContent.innerHTML = `
+                        <div style="background: var(--surface-light); border-radius: 16px; padding: 2rem; color: var(--text-light);">
+                            <div id="studentInputs" style="text-align:left;">
+                                <h4 style="color: var(--text-light);">Student Inputs</h4>
+                                <div style="margin-bottom:0.75rem;">
+                                    <label style="font-weight:600; color:var(--text-light);">Lesson Topic (write the topic of the day)</label>
+                                    <input id="lessonTopic" type="text" placeholder="Enter lesson topic" style="width:100%; padding:0.5rem; border-radius:6px; border:1px solid var(--border-light);" value="${escapeHtml(savedTopic)}" />
                                 </div>
-                            `).join('')}
+
+                                <div style="margin-bottom:0.75rem;">
+                                    <label style="font-weight:600; color:var(--text-light);">Warm-up: Self-evaluation (Level 1-4)</label>
+                                    <select id="warmupLevel" style="width:200px; padding:0.5rem; border-radius:6px;">
+                                        <option value="1">1 - Beginner</option>
+                                        <option value="2">2 - Explorer</option>
+                                        <option value="3">3 - Performer</option>
+                                        <option value="4">4 - Champion</option>
+                                    </select>
+                                    <textarea id="warmupNote" placeholder="Explain why you selected this level (teacher gives criteria orally)" style="width:100%; margin-top:0.5rem; padding:0.5rem; min-height:60px; border-radius:6px; border:1px solid var(--border-light);"></textarea>
+                                </div>
+
+                                <div style="margin-bottom:0.75rem;">
+                                    <label style="font-weight:600; color:var(--text-light);">Exercise: Write the skills you practiced</label>
+                                    <div id="exerciseSkillsContainer">
+                                        <input class="exercise-skill-input" type="text" placeholder="Skill practiced #1" style="width:100%; padding:0.5rem; border-radius:6px; border:1px solid var(--border-light); margin-bottom:0.5rem;" />
+                                    </div>
+                                    <div style="display:flex; gap:0.5rem; margin-top:0.5rem;">
+                                        <button id="addExerciseSkillBtn" class="photo-btn" type="button">+ Add skill</button>
+                                        <button id="clearExerciseSkillBtn" class="photo-btn" type="button">Clear</button>
+                                    </div>
+                                </div>
+
+                                <div style="margin-bottom:0.75rem;">
+                                    <label style="font-weight:600; color:var(--text-light);">How-to Criteria (up to 3) — write steps or criteria for the skills you practiced</label>
+                                    <div id="howToContainer">
+                                        <input class="howto-input" type="text" placeholder="How to do #1" style="width:100%; padding:0.5rem; border-radius:6px; border:1px solid var(--border-light); margin-bottom:0.5rem;" />
+                                    </div>
+                                    <div style="display:flex; gap:0.5rem; margin-top:0.5rem;"><button id="addHowToBtn" class="photo-btn" type="button">+ Add criterion</button><button id="clearHowToBtn" class="photo-btn" type="button">Clear</button></div>
+                                </div>
+                            </div>
+
+                            <div style="margin-top: 2rem; text-align: center;">
+                                <button class="assessment-btn" onclick="markLessonComplete(${currentLesson})">Complete Lesson</button>
+                            </div>
                         </div>
-                        
-                        <div style="margin: 1.5rem 0;">
-                            <h4 style="color: var(--text-light); margin-bottom: 0.75rem;">Equipment Needed:</h4>
-                            <p style="color: var(--text-secondary);">${content.equipment.join(', ')}</p>
-                        </div>
-                        
-                        <div style="margin: 1.5rem 0;">
-                            <h4 style="color: var(--text-light); margin-bottom: 0.75rem;">Safety Notes:</h4>
-                            <ul style="color: var(--text-secondary); padding-left: 1.5rem;">
-                                ${content.safetyNotes.map(note => `<li>${note}</li>`).join('')}
-                            </ul>
-                        </div>
-                        
-                        <div style="margin-top: 2rem; text-align: center;">
-                            <button class="assessment-btn" onclick="markLessonComplete(${currentLesson})">
-                                Complete Lesson
-                            </button>
-                        </div>
-                    </div>
-                `;
+                    `;
+
+                    setupLessonStudentInputs();
+
+                    return;
+                }
             } catch (error) {
                 console.error('Failed to load lesson content:', error);
                 lessonContent.innerHTML = `
@@ -3835,9 +3925,41 @@
             if (!progressData[currentSport]) {
                 progressData[currentSport] = {};
             }
+
+            // If student inputs exist, capture them and include in progress
+            const selfEval = {};
+            try {
+                const topicEl = document.getElementById('lessonTopic');
+                const warmupLevelEl = document.getElementById('warmupLevel');
+                const warmupNoteEl = document.getElementById('warmupNote');
+                const exerciseLevelEl = document.getElementById('exerciseLevel');
+                const exerciseNoteEl = document.getElementById('exerciseNote');
+                const exerciseSkillEls = document.querySelectorAll('.exercise-skill-input');
+                const howToEls = document.querySelectorAll('.howto-input');
+
+                if (topicEl) selfEval.topic = topicEl.value.trim();
+                if (warmupLevelEl) {
+                    const lvl = parseInt(warmupLevelEl.value || '1', 10);
+                    selfEval.warmup = { level: lvl, points: levelToPoints(lvl), note: warmupNoteEl ? warmupNoteEl.value.trim() : '' };
+                }
+                // If students provided exercise skills (new format), save them; otherwise keep old level/note structure
+                if (exerciseSkillEls && exerciseSkillEls.length) {
+                    selfEval.exercise = { skills: Array.from(exerciseSkillEls).map(i => i.value.trim()).filter(Boolean).slice(0,6) };
+                } else if (exerciseLevelEl) {
+                    const lvl = parseInt(exerciseLevelEl.value || '1', 10);
+                    selfEval.exercise = { level: lvl, points: levelToPoints(lvl), note: exerciseNoteEl ? exerciseNoteEl.value.trim() : '' };
+                }
+                if (howToEls && howToEls.length) {
+                    selfEval.howTo = Array.from(howToEls).map(i => i.value.trim()).filter(Boolean).slice(0,3);
+                }
+            } catch (e) {
+                console.warn('Error reading student inputs', e);
+            }
+
             progressData[currentSport][`lesson_${lessonNumber}`] = {
                 completed: true,
-                completedAt: new Date().toISOString()
+                completedAt: new Date().toISOString(),
+                selfEvaluation: Object.keys(selfEval).length ? selfEval : undefined
             };
             
             // Save to database with optimistic updates
@@ -3850,7 +3972,29 @@
                     });
                 }
             }
-            
+
+            // Update local currentUser and persist locally so UI reflects changes immediately
+            try {
+                currentUser.sport_progress = JSON.stringify(progressData);
+                localStorage.setItem('peHubUser', JSON.stringify(currentUser));
+
+                // Also update local list of users if present
+                try {
+                    const users = JSON.parse(localStorage.getItem('peHubUsers') || '[]');
+                    const idx = users.findIndex(u => (u.user_id || u.student_id) === (currentUser.user_id || currentUser.student_id));
+                    if (idx >= 0) {
+                        users[idx] = { ...users[idx], sport_progress: currentUser.sport_progress };
+                    } else {
+                        users.push(currentUser);
+                    }
+                    localStorage.setItem('peHubUsers', JSON.stringify(users));
+                } catch (e) {
+                    // ignore
+                }
+            } catch (e) {
+                console.warn('Failed to persist lesson progress locally', e);
+            }
+
             showNotification(`Lesson ${lessonNumber} completed! Great work!`, 'success');
             showSportDetail(); // Return to sport overview
         }
@@ -3909,6 +4053,150 @@
                     currentAssessment[skillKey] = parseInt(levelValue);
                 });
             });
+        }
+
+        // Map level to simple points (can be adjusted later)
+        function levelToPoints(level) {
+            // Levels 1..4 map to points 1..4 for simple auto-evaluation
+            const l = parseInt(level || 1, 10);
+            if (isNaN(l) || l < 1) return 1;
+            if (l > 4) return 4;
+            return l;
+        }
+
+        // Simple HTML-escape helper for inserting user text into templates
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        // Setup student input handlers in lesson detail view
+        function setupLessonStudentInputs() {
+            // Add/remove how-to fields (max 3)
+            const addBtn = document.getElementById('addHowToBtn');
+            const clearBtn = document.getElementById('clearHowToBtn');
+            const howToContainer = document.getElementById('howToContainer');
+
+            if (addBtn && howToContainer) {
+                addBtn.addEventListener('click', () => {
+                    const existing = howToContainer.querySelectorAll('.howto-input').length;
+                    if (existing >= 3) {
+                        showNotification('You can add up to 3 criteria only', 'info');
+                        return;
+                    }
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.className = 'howto-input';
+                    input.placeholder = `How to do #${existing + 1}`;
+                    input.style.width = '100%';
+                    input.style.padding = '0.5rem';
+                    input.style.borderRadius = '6px';
+                    input.style.border = '1px solid var(--border-light)';
+                    input.style.marginBottom = '0.5rem';
+                    howToContainer.appendChild(input);
+                });
+            }
+
+            if (clearBtn && howToContainer) {
+                clearBtn.addEventListener('click', () => {
+                    howToContainer.innerHTML = '<input class="howto-input" type="text" placeholder="How to do #1" style="width:100%; padding:0.5rem; border-radius:6px; border:1px solid var(--border-light); margin-bottom:0.5rem;" />';
+                });
+            }
+
+            // Exercise skills add/remove (max 6)
+            const addExerciseBtn = document.getElementById('addExerciseSkillBtn');
+            const clearExerciseBtn = document.getElementById('clearExerciseSkillBtn');
+            const exerciseContainer = document.getElementById('exerciseSkillsContainer');
+
+            if (addExerciseBtn && exerciseContainer) {
+                addExerciseBtn.addEventListener('click', () => {
+                    const existing = exerciseContainer.querySelectorAll('.exercise-skill-input').length;
+                    if (existing >= 6) {
+                        showNotification('You can add up to 6 skills only', 'info');
+                        return;
+                    }
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.className = 'exercise-skill-input';
+                    input.placeholder = `Skill practiced #${existing + 1}`;
+                    input.style.width = '100%';
+                    input.style.padding = '0.5rem';
+                    input.style.borderRadius = '6px';
+                    input.style.border = '1px solid var(--border-light)';
+                    input.style.marginBottom = '0.5rem';
+                    exerciseContainer.appendChild(input);
+                });
+            }
+
+            if (clearExerciseBtn && exerciseContainer) {
+                clearExerciseBtn.addEventListener('click', () => {
+                    exerciseContainer.innerHTML = '<input class="exercise-skill-input" type="text" placeholder="Skill practiced #1" style="width:100%; padding:0.5rem; border-radius:6px; border:1px solid var(--border-light); margin-bottom:0.5rem;" />';
+                });
+            }
+
+            // If we have saved progress for this lesson, populate the inputs
+            try {
+                const progressData = JSON.parse(currentUser.sport_progress || '{}');
+                const lessonKey = `lesson_${currentLesson}`;
+                const saved = progressData[currentSport] && progressData[currentSport][lessonKey] ? progressData[currentSport][lessonKey].selfEvaluation : null;
+                if (saved) {
+                    if (saved.topic) document.getElementById('lessonTopic').value = saved.topic;
+                    if (saved.warmup) {
+                        document.getElementById('warmupLevel').value = saved.warmup.level || '1';
+                        document.getElementById('warmupNote').value = saved.warmup.note || '';
+                    }
+                            if (saved.exercise) {
+                                // Older format stored exercise as level/note or newer format may store skills array
+                                const skillsContainer = document.getElementById('exerciseSkillsContainer');
+                                if (Array.isArray(saved.exercise.skills) && skillsContainer) {
+                                    skillsContainer.innerHTML = '';
+                                    saved.exercise.skills.slice(0,6).forEach((s, idx) => {
+                                        const input = document.createElement('input');
+                                        input.type = 'text';
+                                        input.className = 'exercise-skill-input';
+                                        input.value = s;
+                                        input.placeholder = `Skill practiced #${idx+1}`;
+                                        input.style.width = '100%';
+                                        input.style.padding = '0.5rem';
+                                        input.style.borderRadius = '6px';
+                                        input.style.border = '1px solid var(--border-light)';
+                                        input.style.marginBottom = '0.5rem';
+                                        skillsContainer.appendChild(input);
+                                    });
+                                } else {
+                                    // Fallback: if old level/note exist, place note into first skill input or exerciseNote if present
+                                    const skillsContainer2 = document.getElementById('exerciseSkillsContainer');
+                                    if (skillsContainer2) {
+                                        skillsContainer2.querySelectorAll('.exercise-skill-input')[0].value = saved.exercise.note || '';
+                                    }
+                                }
+                            }
+                    if (saved.howTo && saved.howTo.length) {
+                        const container = document.getElementById('howToContainer');
+                        container.innerHTML = '';
+                        saved.howTo.slice(0,3).forEach((c, idx) => {
+                            const input = document.createElement('input');
+                            input.type = 'text';
+                            input.className = 'howto-input';
+                            input.value = c;
+                            input.placeholder = `How to do #${idx+1}`;
+                            input.style.width = '100%';
+                            input.style.padding = '0.5rem';
+                            input.style.borderRadius = '6px';
+                            input.style.border = '1px solid var(--border-light)';
+                            input.style.marginBottom = '0.5rem';
+                            container.appendChild(input);
+                        });
+                    }
+                }
+            } catch (e) {
+                // ignore parse errors
+            }
         }
 
         async function saveAssessment() {
