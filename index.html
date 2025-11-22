@@ -939,6 +939,64 @@
             margin: 0 auto;
         }
 
+        /* Individual quiz point buttons (used inside the map grid) */
+        .quiz-point {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            border: 2px solid rgba(255,255,255,0.06);
+            background: rgba(255,255,255,0.03);
+            color: white;
+            transition: transform 0.18s ease, box-shadow 0.18s ease;
+            position: relative;
+        }
+
+        .quiz-point:hover {
+            transform: translateY(-6px) scale(1.06);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.35);
+        }
+
+        /* Reward quiz visual treatment */
+        .quiz-point.quiz-reward {
+            background: linear-gradient(90deg, #FFD54F 0%, #FFC107 100%);
+            color: #222;
+            border: 2px solid rgba(0,0,0,0.08);
+        }
+
+        /* Small badge for reward quizzes */
+        .quiz-point.quiz-reward::after {
+            content: '🏅';
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-size: 14px;
+            background: #fff8e1;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        /* Gentle pulse to draw attention on reward quizzes */
+        @keyframes reward-pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255,193,7,0.18); }
+            70% { box-shadow: 0 0 0 10px rgba(255,193,7,0.03); }
+            100% { box-shadow: 0 0 0 0 rgba(255,193,7,0.0); }
+        }
+
+        .quiz-point.quiz-reward {
+            animation: reward-pulse 2.8s infinite ease-in-out;
+        }
+
         .quiz-level {
             width: 80px;
             height: 80px;
@@ -5189,6 +5247,522 @@
                 try { populateLeaderboard(); } catch (e) { console.warn('populateLeaderboard failed', e); }
             });
         });
+
+        /* ====== Quiz Map, Quiz Bank (100 quizzes) and Quiz Flow ======
+           - 100 quizzes organized into 10 levels (10 each)
+           - Reading page (Title, Quote, Main Text) before quiz
+           - 10-question MCQ per quiz, questions derived from mainText
+           - 'Read Topic Text' overlay available during questions
+           - Reward quizzes: quizzes with index ending in 5 or 0
+           - House point awarding on passing reward quizzes
+        */
+
+        // Quiz state
+        const QUIZ_LEVELS = 10;
+        const QUIZZES_PER_LEVEL = 10;
+        let quizBank = [];
+        let activeQuiz = null; // { index, quiz, answers, score }
+
+        function buildQuizBank() {
+            // Define 10 core topics mapped to levels 1..10 (each level covers one topic across its 10 quizzes)
+            const TOPIC_DEFS = [
+                {
+                    key: 'Sport Rules',
+                    quote: 'You have to play by the rules — sportsmanship is everything. — Billie Jean King',
+                    subtopics: [
+                        'Introduction to rules and why they exist',
+                        'How rules keep competition fair',
+                        'Common rule examples in team sports',
+                        'Referees and officials: roles and signals',
+                        'Penalties and fair sanctions',
+                        'Adapting rules for younger players',
+                        'Rule changes and game evolution',
+                        'How rules protect player safety',
+                        'Applying rules in practice and matches',
+                        'Dispute resolution and fair decisions'
+                    ]
+                },
+                {
+                    key: 'Sport Values',
+                    quote: 'The important thing in life is not the triumph but the struggle. — Pierre de Coubertin',
+                    subtopics: [
+                        'Respect and humility',
+                        'Determination and resilience',
+                        'Teamwork and cooperation',
+                        'Honesty and integrity',
+                        'Effort and commitment',
+                        'Respect for opponents',
+                        'Leadership through example',
+                        'Responsibility to the team',
+                        'Celebrating success and learning from loss',
+                        'Community and inclusion in sport'
+                    ]
+                },
+                {
+                    key: 'Safety in Sport',
+                    quote: 'An ounce of prevention is worth a pound of cure. — Benjamin Franklin',
+                    subtopics: [
+                        'Warm-up and cool-down importance',
+                        'Correct equipment and protective gear',
+                        'Playing surface and environment checks',
+                        'Recognising and managing fatigue',
+                        'Basic on-field safety rules',
+                        'Hydration and rest to prevent harm',
+                        'Reporting hazards and fixing them',
+                        'Supervision and qualified coaching',
+                        'Safe practice progression',
+                        'Return-to-play considerations after injury'
+                    ]
+                },
+                {
+                    key: 'History of Sports',
+                    quote: 'Sport has the power to change the world. — Nelson Mandela',
+                    subtopics: [
+                        'Origins of ancient games',
+                        'Modern Olympics beginnings',
+                        'Evolution of team sports',
+                        'Historic athletes who changed their sports',
+                        'How rules and equipment evolved',
+                        'Women in sport: a timeline',
+                        'Globalisation of sports and leagues',
+                        'Iconic sporting moments',
+                        'The role of sport in society',
+                        'How sport reflects cultural change'
+                    ]
+                },
+                {
+                    key: 'Nutrition - Fuel for the Body',
+                    quote: 'If you don’t take care of your body, where are you going to live? — Unknown',
+                    subtopics: [
+                        'Macronutrients: carbs, proteins, fats',
+                        'Pre-training snacks and meals',
+                        'Recovery meals after exercise',
+                        'Importance of balanced hydration',
+                        'Timing meals for performance',
+                        'Energy needs for growing athletes',
+                        'Healthy snack choices',
+                        'Role of vitamins and minerals',
+                        'Reducing processed foods before competition',
+                        'Reading simple nutrition labels'
+                    ]
+                },
+                {
+                    key: 'Anatomy & Movement',
+                    quote: 'To move well is to live well. — Anonymous',
+                    subtopics: [
+                        'Major muscle groups used in sport',
+                        'Basic joint actions (flexion/extension)',
+                        'Posture and alignment for performance',
+                        'How muscles work together in movement',
+                        'Simple biomechanics of running and jumping',
+                        'Body awareness and proprioception',
+                        'Common movement faults to avoid',
+                        'Mobility vs flexibility',
+                        'Why technique matters',
+                        'Injury mechanisms related to poor movement'
+                    ]
+                },
+                {
+                    key: 'Training Principles',
+                    quote: 'The only place where success comes before work is in the dictionary. — Vidal Sassoon',
+                    subtopics: [
+                        'Progressive overload and adaptation',
+                        'Specificity: training for the sport',
+                        'Recovery and rest planning',
+                        'Periodisation basics for young athletes',
+                        'Consistency and gradual progression',
+                        'Measuring improvement',
+                        'Cross-training benefits',
+                        'Balance of strength and skill work',
+                        'Setting realistic goals',
+                        'Avoiding overtraining'
+                    ]
+                },
+                {
+                    key: 'Psychology of Sport',
+                    quote: 'Champions keep playing until they get it right. — Billie Jean King',
+                    subtopics: [
+                        'Goal-setting and motivation',
+                        'Managing competition anxiety',
+                        'Concentration and focus techniques',
+                        'The role of self-talk',
+                        'Team cohesion and communication',
+                        'Handling pressure moments',
+                        'Building confidence through practice',
+                        'Visualization and mental rehearsal',
+                        'Growth mindset vs fixed mindset',
+                        'Support networks and mentoring'
+                    ]
+                },
+                {
+                    key: 'Fair Play & Ethics',
+                    quote: 'Winning isn’t everything, but wanting to win is. — Vince Lombardi',
+                    subtopics: [
+                        'Definition of fair play',
+                        'Respecting opponents and officials',
+                        'Doping and ethical behaviour',
+                        'Inclusive sport and anti-discrimination',
+                        'Consequences of cheating',
+                        'Sportsmanship examples in behaviour',
+                        'Reporting unethical conduct',
+                        'Role models and responsibility',
+                        'Fair selection and equal opportunity',
+                        'Creating a positive culture in sport'
+                    ]
+                },
+                {
+                    key: 'Olympics & Major Events',
+                    quote: 'The Olympic Games are more than a sporting event; they are a celebration. — Jacques Rogge',
+                    subtopics: [
+                        'History and values of the Olympics',
+                        'How athletes qualify',
+                        'Hosting challenges and legacy',
+                        'Memorable Olympic moments',
+                        'Para-sport and inclusion',
+                        'Opening and closing ceremony roles',
+                        'Medals and records significance',
+                        'National pride and international friendship',
+                        'The Olympic movement and symbols',
+                        'Career paths after major events'
+                    ]
+                }
+            ];
+
+            quizBank = [];
+            let qIndex = 1;
+            for (let level = 1; level <= QUIZ_LEVELS; level++) {
+                // select topic by level index (level 1 -> TOPIC_DEFS[0], level 2 -> [1], ...)
+                const topicDef = TOPIC_DEFS[(level - 1) % TOPIC_DEFS.length];
+                for (let i = 1; i <= QUIZZES_PER_LEVEL; i++) {
+                    const variant = (i - 1) % 10; // choose a subtopic variant 0..9
+                    const title = `${topicDef.key} — ${topicDef.subtopics[variant]}`;
+                    const quote = topicDef.quote;
+
+                    // Compose a 3-paragraph main text using the chosen subtopic
+                    const para1 = `${topicDef.key}: ${topicDef.subtopics[variant]}. This section introduces the idea and explains why it matters for young learners in PE.`;
+                    const para2 = `Details: In practical terms, ${topicDef.subtopics[variant].toLowerCase()} includes key points students should remember. Examples: ${generateExamples(topicDef.key, variant)}.`;
+                    const para3 = `Takeaway: Remember that ${topicDef.subtopics[variant].toLowerCase()} helps athletes perform better and stay safe. Teachers and coaches emphasise practice, correct technique and respect for others.`;
+                    const mainText = `${para1}\n\n${para2}\n\n${para3}`;
+
+                    // Produce 10 MCQs: use clear statements drawn from the mainText sentences
+                    const sentences = mainText.split(/\.\s+/).map(s => s.trim()).filter(s => s.length > 15);
+                    const questions = [];
+                    for (let q = 0; q < 10; q++) {
+                        const correctSentence = sentences[q % sentences.length];
+                        // Build distractors by altering key words or using neighboring sentences
+                        const distractors = [];
+                        // Neighboring sentences
+                        const n1 = sentences[(q + 1) % sentences.length] || sentences[0];
+                        const n2 = sentences[(q + 2) % sentences.length] || sentences[0];
+                        distractors.push(n1);
+                        distractors.push(n2);
+                        // A simple altered sentence as another distractor
+                        distractors.push(correctSentence.replace(/\b(is|are|includes|helps|remember)\b/gi, 'may'));
+
+                        // assemble options and ensure unique
+                        const options = [correctSentence].concat(distractors).slice(0,4).map(s => s.trim());
+                        // shuffle deterministic-ish using qIndex + q
+                        for (let s = options.length -1; s > 0; s--) {
+                            const r = (qIndex + q + s) % (s + 1);
+                            [options[s], options[r]] = [options[r], options[s]];
+                        }
+                        questions.push({
+                            id: `${qIndex}_${q+1}`,
+                            question: `Which statement best reflects the passage above?`,
+                            options: options,
+                            correct: options.indexOf(correctSentence)
+                        });
+                    }
+
+                    quizBank.push({
+                        index: qIndex,
+                        level: level,
+                        title: title,
+                        quote: quote,
+                        mainText: mainText,
+                        questions: questions,
+                        isReward: (qIndex % 5 === 0)
+                    });
+
+                    qIndex++;
+                }
+            }
+
+            // helper to generate short example phrases based on topic and variant
+            function generateExamples(topicKey, variantIndex) {
+                const examplesMap = {
+                    'Sport Rules': ['stopping play at whistle', 'no elbowing', 'respecting throw-in procedures'],
+                    'Sport Values': ['supporting teammates', 'applauding opponents', 'accepting referee decisions'],
+                    'Safety in Sport': ['wearing shin guards', 'checking footwear', 'clearing debris from the pitch'],
+                    'History of Sports': ['ancient Olympic origins', 'first modern marathons', 'early rules codification'],
+                    'Nutrition - Fuel for the Body': ['carbohydrates before matches', 'protein for recovery', 'snacks like bananas or yogurt'],
+                    'Anatomy & Movement': ['using quads for running', 'core stability for balance', 'ankle mobility drills'],
+                    'Training Principles': ['gradual increase of load', 'mixing skill sessions with fitness', 'rest days within programmes'],
+                    'Psychology of Sport': ['setting small goals', 'deep breathing to focus', 'positive self-talk routines'],
+                    'Fair Play & Ethics': ['no intentional fouling', 'anti-doping rules', 'equal play opportunities'],
+                    'Olympics & Major Events': ['medal ceremonies', 'hosting city legacy', 'opening ceremony traditions']
+                };
+                const list = examplesMap[topicKey] || ['practical example 1', 'practical example 2', 'practical example 3'];
+                return list[variantIndex % list.length];
+            }
+        }
+
+        function populateQuizMap() {
+            const container = document.getElementById('quizMap');
+            if (!container) return;
+            // clear
+            container.innerHTML = '';
+            for (let level = 1; level <= QUIZ_LEVELS; level++) {
+                const levelDiv = document.createElement('div');
+                levelDiv.className = 'quiz-level-row';
+                levelDiv.style.margin = '0.5rem 0';
+                const header = document.createElement('div');
+                header.style.margin = '0.25rem 0';
+                header.innerHTML = `<strong style="color:var(--accent-primary)">Level ${level}</strong>`;
+                levelDiv.appendChild(header);
+
+                const grid = document.createElement('div');
+                grid.style.display = 'grid';
+                grid.style.gridTemplateColumns = 'repeat(10, 1fr)';
+                grid.style.gap = '0.5rem';
+
+                const start = (level -1) * QUIZZES_PER_LEVEL + 1;
+                const end = start + QUIZZES_PER_LEVEL -1;
+                for (let qi = start; qi <= end; qi++) {
+                    const btn = document.createElement('button');
+                    btn.className = 'quiz-point';
+                    btn.dataset.quizIndex = qi;
+                    btn.style.padding = '0.5rem';
+                    btn.style.borderRadius = '6px';
+                    btn.style.border = '1px solid rgba(255,255,255,0.08)';
+                    btn.style.background = 'rgba(255,255,255,0.03)';
+                    btn.style.color = 'white';
+                    btn.style.cursor = 'pointer';
+                    btn.textContent = qi;
+                    // reward quiz styling (read from quizBank when available)
+                    const quizObj = quizBank.find(q => q.index === qi);
+                    if (quizObj && quizObj.isReward) {
+                        btn.style.background = 'linear-gradient(90deg, #ffd54f, #ffc107)';
+                        btn.style.color = '#222';
+                        btn.title = 'High-Value Quiz — reward available';
+                        btn.classList.add('quiz-reward');
+                    }
+                    btn.addEventListener('click', () => openQuizEntry(qi));
+                    grid.appendChild(btn);
+                }
+                levelDiv.appendChild(grid);
+                container.appendChild(levelDiv);
+            }
+        }
+
+        function openQuizEntry(index) {
+            const quiz = quizBank.find(q => q.index === Number(index));
+            if (!quiz) return;
+            // render reading page into quizLevelView
+            const view = document.getElementById('quizLevelView');
+            if (!view) return;
+            // populate intro area
+            const headerTitle = document.getElementById('quizLevelTitle');
+            const intro = document.getElementById('quizIntro');
+            headerTitle.textContent = quiz.title;
+            const specialStyle = quiz.isReward ? 'box-shadow:0 8px 24px rgba(255,193,7,0.18);border:3px solid #ffecb3' : '';
+            intro.innerHTML = `
+                <div style="padding:1rem;background:var(--surface-light);border-radius:12px;color:var(--text-light);max-height:220px;overflow:auto;${specialStyle}">
+                    <h3 style="margin-bottom:0.5rem">${quiz.title}</h3>
+                    <blockquote style="font-style:italic;color:var(--text-secondary);">${quiz.quote}</blockquote>
+                    <div style="margin-top:1rem;max-height:220px;overflow:auto;color:var(--text-light);white-space:pre-wrap">${escapeHtml(quiz.mainText)}</div>
+                    <div style="text-align:right;margin-top:1rem;"><button id="startQuizBtn" class="quiz-btn">Start Quiz</button></div>
+                </div>
+            `;
+            // show view
+            switchTab('quiz');
+            // attach start handler
+            setTimeout(()=>{
+                const b = document.getElementById('startQuizBtn');
+                if (b) b.addEventListener('click', () => startQuiz(quiz.index));
+            }, 50);
+        }
+
+        // Overlay for reading topic text during quiz
+        function showReadOverlay(quiz) {
+            const existing = document.getElementById('quizReadOverlay');
+            if (existing) existing.remove();
+            const overlay = document.createElement('div');
+            overlay.id = 'quizReadOverlay';
+            overlay.style.position = 'fixed';
+            overlay.style.top = 0;
+            overlay.style.left = 0;
+            overlay.style.right = 0;
+            overlay.style.bottom = 0;
+            overlay.style.background = 'rgba(0,0,0,0.7)';
+            overlay.style.display = 'flex';
+            overlay.style.alignItems = 'center';
+            overlay.style.justifyContent = 'center';
+            overlay.style.zIndex = 9999;
+            overlay.innerHTML = `
+                <div style="max-width:900px;width:90%;background:var(--surface-light);border-radius:12px;padding:1rem;color:var(--text-light);max-height:90%;overflow:auto;">
+                    <h3>${escapeHtml(quiz.title)}</h3>
+                    <blockquote style="font-style:italic;color:var(--text-secondary)">${escapeHtml(quiz.quote)}</blockquote>
+                    <div style="white-space:pre-wrap;margin-top:0.5rem">${escapeHtml(quiz.mainText)}</div>
+                    <div style="text-align:right;margin-top:1rem"><button id="closeQuizRead" class="quiz-btn">Close</button></div>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+            document.getElementById('closeQuizRead')?.addEventListener('click', ()=> overlay.remove());
+        }
+
+        function startQuiz(index) {
+            const quiz = quizBank.find(q => q.index === Number(index));
+            if (!quiz) return;
+            activeQuiz = { index: quiz.index, quiz, currentQuestion: 0, answers: Array(10).fill(null), score: 0 };
+            // show question UI
+            renderQuestion();
+        }
+
+        function renderQuestion() {
+            if (!activeQuiz) return;
+            const qIdx = activeQuiz.currentQuestion;
+            const questionObj = activeQuiz.quiz.questions[qIdx];
+            // prepare question container
+            const container = document.getElementById('quizQuestionContainer');
+            if (!container) return;
+            container.innerHTML = '';
+            const qWrap = document.createElement('div');
+            qWrap.style.padding = '1rem';
+            qWrap.style.background = 'var(--surface-light)';
+            qWrap.style.borderRadius = '12px';
+            qWrap.style.color = 'var(--text-light)';
+
+            qWrap.innerHTML = `
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+                    <div><strong>Question ${qIdx + 1} of 10</strong></div>
+                    <div><button id="readTopicBtn" class="quiz-btn secondary">Read Topic Text</button></div>
+                </div>
+                <div style="margin-bottom:1rem;font-weight:600">${escapeHtml(questionObj.question)}</div>
+                <div id="optionsList"></div>
+                <div style="text-align:right;margin-top:1rem;"><button id="nextQBtn" class="quiz-btn" disabled>Next</button></div>
+            `;
+            container.appendChild(qWrap);
+            const optionsList = document.getElementById('optionsList');
+            questionObj.options.forEach((opt, oi) => {
+                const el = document.createElement('div');
+                el.className = 'answer-option';
+                el.style.marginBottom = '0.5rem';
+                el.innerHTML = `<div style="display:flex;gap:0.75rem;align-items:center"><div style="width:30px;height:30px;border-radius:50%;background:var(--accent-primary);color:white;display:flex;align-items:center;justify-content:center;font-weight:700">${String.fromCharCode(65+oi)}</div><div style="flex:1">${escapeHtml(opt)}</div></div>`;
+                el.addEventListener('click', ()=> {
+                    // mark selection
+                    activeQuiz.answers[qIdx] = oi;
+                    // mark visual
+                    document.querySelectorAll('#optionsList .answer-option').forEach(a => a.style.borderColor = 'transparent');
+                    el.style.border = '2px solid var(--accent-primary)';
+                    document.getElementById('nextQBtn').disabled = false;
+                });
+                optionsList.appendChild(el);
+            });
+
+            document.getElementById('readTopicBtn').addEventListener('click', ()=> showReadOverlay(activeQuiz.quiz));
+
+            document.getElementById('nextQBtn').addEventListener('click', ()=> {
+                // if answer exists, evaluate
+                const ans = activeQuiz.answers[qIdx];
+                if (ans !== null) {
+                    if (ans === questionObj.correct) activeQuiz.score += 1;
+                }
+                // advance
+                if (qIdx + 1 < 10) {
+                    activeQuiz.currentQuestion++;
+                    renderQuestion();
+                } else {
+                    // finish
+                    finishQuiz();
+                }
+            });
+        }
+
+        function finishQuiz() {
+            if (!activeQuiz) return;
+            // final score already accumulated for previous answers except possibly last one
+            const lastIdx = activeQuiz.currentQuestion;
+            const lastQuestion = activeQuiz.quiz.questions[lastIdx];
+            const lastAns = activeQuiz.answers[lastIdx];
+            if (lastAns !== null && lastAns === lastQuestion.correct) activeQuiz.score += 1;
+
+            const correct = activeQuiz.score;
+            const percent = Math.round((correct / 10) * 100);
+            const pass = percent >= 70; // passing threshold
+
+            // mark completed quiz level in currentUser
+            try {
+                if (!currentUser) currentUser = JSON.parse(localStorage.getItem('peHubUser') || 'null');
+            } catch (e) {}
+            if (currentUser) {
+                if (!Array.isArray(currentUser.completed_quiz_levels)) currentUser.completed_quiz_levels = [];
+                if (!currentUser.completed_quiz_levels.includes(activeQuiz.index)) currentUser.completed_quiz_levels.push(activeQuiz.index);
+            }
+
+            // if this quiz is reward quiz (marked in quizBank) and passed, award 1 house point
+            const isReward = (activeQuiz.quiz && activeQuiz.quiz.isReward) || (activeQuiz.index % 5 === 0);
+            let awardedPoint = false;
+            if (isReward && pass && currentUser) {
+                currentUser.house_points = (Number(currentUser.house_points) || 0) + 1;
+                awardedPoint = true;
+            }
+
+            if (currentUser) {
+                // persist
+                localStorage.setItem('peHubUser', JSON.stringify(currentUser));
+                try {
+                    // update in peHubUsers / users lists
+                    const users = JSON.parse(localStorage.getItem('users') || '[]');
+                    const idx = users.findIndex(u => (u.student_id || u.studentId || u.id) === (currentUser.student_id || currentUser.studentId || currentUser.id));
+                    if (idx >= 0) {
+                        users[idx] = { ...users[idx], house_points: currentUser.house_points, completed_quiz_levels: currentUser.completed_quiz_levels };
+                    }
+                    localStorage.setItem('users', JSON.stringify(users));
+                } catch (e) {}
+            }
+
+            updateDashboard();
+
+            // show completion screen
+            showCompletionScreen({ correct, percent, pass, awardedPoint, isReward });
+            activeQuiz = null;
+        }
+
+        function showCompletionScreen({ correct, percent, pass, awardedPoint, isReward }) {
+            const container = document.getElementById('quizLevelView');
+            if (!container) return;
+            const msgColor = pass ? 'var(--accent-secondary)' : 'var(--house-red)';
+            const rewardHtml = (isReward && awardedPoint) ? `<div style="margin-top:1rem;padding:1rem;border-radius:8px;background:linear-gradient(90deg,#ffd54f,#ffc107);color:#222;font-weight:800">CONGRATULATIONS! You Earned 1 House Point!</div>` : '';
+            const specialStyle = isReward ? 'box-shadow:0 10px 30px rgba(255,193,7,0.25);border:3px solid #ffecb3' : '';
+            document.getElementById('quizLevelTitle').textContent = `Quiz Result`;
+            document.getElementById('quizIntro').innerHTML = `
+                <div style="padding:1rem;background:var(--surface-light);border-radius:12px;${specialStyle};color:var(--text-light)">
+                    <h3 style="margin-bottom:0.5rem">Score: ${correct}/10 — ${percent}%</h3>
+                    <div style="color:${msgColor};font-weight:700">${pass ? 'Passed' : 'Not Passed'}</div>
+                    ${rewardHtml}
+                    <div style="margin-top:1rem;text-align:right"><button id="returnToMap" class="quiz-btn">Return to Quiz Map</button></div>
+                </div>
+            `;
+            setTimeout(()=>{
+                const b = document.getElementById('returnToMap');
+                if (b) b.addEventListener('click', ()=> {
+                    switchTab('quiz');
+                    // ensure quiz map visible
+                    const qTab = document.getElementById('quizTab');
+                    if (qTab) qTab.classList.remove('hidden');
+                    populateQuizMap();
+                });
+            },50);
+        }
+
+        // Initialize quiz bank and map on load
+        try {
+            buildQuizBank();
+            populateQuizMap();
+        } catch (e) {
+            console.warn('Quiz bank initialization failed', e);
+        }
     </script>
 </body>
 </html>
