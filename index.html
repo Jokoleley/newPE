@@ -1911,6 +1911,7 @@
      </div>
      <div class="form-group"><label for="studentEmail">Email Address</label> <input type="email" id="studentEmail" required placeholder="student@school.edu">
      </div>
+        <div class="form-group"><label for="studentPassword">Password</label> <input type="password" id="studentPassword" required placeholder="Create a password (min 6 chars)"></div>
      <div class="form-row">
       <div class="form-group"><label for="studentId">Student ID</label> <input type="text" id="studentId" required>
       </div>
@@ -1951,6 +1952,19 @@
       </div>
      </div><button type="submit" class="auth-btn" id="studentSubmitBtn">Create Student Account</button>
     </form><!-- Teacher Login Form -->
+    <!-- Student Login Form (hidden by default) -->
+    <form id="studentLoginForm" class="auth-form hidden">
+     <div class="form-group"><label for="studentLoginEmail">Email Address</label> <input type="email" id="studentLoginEmail" required placeholder="student@school.edu"></div>
+     <div class="form-group"><label for="studentLoginId">Student ID</label> <input type="text" id="studentLoginId" required placeholder="Enter your Student ID"></div>
+        <div class="form-group"><label for="studentLoginPassword">Password</label> <input type="password" id="studentLoginPassword" required placeholder="Your password"></div>
+     <button type="submit" class="auth-btn" id="studentLoginBtn">Student Login</button>
+    </form>
+
+    <div class="switch-auth" style="margin-top:1rem;">
+     <button type="button" id="toStudentLoginBtn" class="photo-btn">Already have an account? Login</button>
+     <button type="button" id="toStudentRegisterBtn" class="photo-btn" style="display:none;">Create Student Account</button>
+    </div>
+
     <form id="teacherForm" class="auth-form hidden">
      <div class="form-group"><label for="teacherPrefix">Prefix</label> <select id="teacherPrefix" required> <option value="">Select prefix</option> <option value="Mr.">Mr.</option> <option value="Miss">Miss</option> </select>
      </div>
@@ -2031,44 +2045,9 @@
         </div>
        </div>
       </div>
-     </div><!-- House Standings -->
-     <div class="dashboard-card">
-      <h3>House Standings</h3>
-      <div class="house-leaderboard">
-       <div class="house-card red">
-        <div class="house-name">
-         Red House
-        </div>
-        <div class="house-total" id="redHouseTotal">
-         1,250
-        </div>
-       </div>
-       <div class="house-card green">
-        <div class="house-name">
-         Green House
-        </div>
-        <div class="house-total" id="greenHouseTotal">
-         1,180
-        </div>
-       </div>
-       <div class="house-card yellow">
-        <div class="house-name">
-         Yellow House
-        </div>
-        <div class="house-total" id="yellowHouseTotal">
-         1,320
-        </div>
-       </div>
-       <div class="house-card blue">
-        <div class="house-name">
-         Blue House
-        </div>
-        <div class="house-total" id="blueHouseTotal">
-         1,290
-        </div>
-       </div>
-      </div>
-     </div><!-- Recent Activity -->
+     </div>
+     <!-- House Standings removed from dashboard by request -->
+     <!-- Recent Activity -->
      <div class="dashboard-card">
       <h3>Recent Activity</h3>
       <div id="recentActivity">
@@ -2995,11 +2974,24 @@
             submitBtn.disabled = true;
             submitBtn.textContent = 'Creating Account...';
 
+            // basic password validation
+            const pwdEl = document.getElementById('studentPassword');
+            const pwdVal = pwdEl ? (pwdEl.value || '') : '';
+            if (!pwdVal || pwdVal.length < 6) {
+                showNotification('Password must be at least 6 characters long', 'error');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Create Student Account';
+                return;
+            }
+
             const formData = {
                 user_type: 'student',
                 full_name: document.getElementById('studentFullName').value,
+                fullName: document.getElementById('studentFullName').value,
                 email: document.getElementById('studentEmail').value,
                 student_id: document.getElementById('studentId').value,
+                studentId: document.getElementById('studentId').value,
+                password: document.getElementById('studentPassword') ? document.getElementById('studentPassword').value : undefined,
                 class_grade: document.getElementById('classGrade').value,
                 school: document.getElementById('school').value,
                 house_team: selectedHouse,
@@ -3058,15 +3050,26 @@
                 if (!Array.isArray(userData)) {
                     userData = [];
                 }
+                // Ensure aliases for login compatibility
+                if (!formData.studentId && formData.student_id) formData.studentId = formData.student_id;
+                if (!formData.fullName && formData.full_name) formData.fullName = formData.full_name;
                 userData.push(formData);
                 // Also sync to window and localStorage
                 window.userData = userData;
                 localStorage.setItem('peHubUser', JSON.stringify(currentUser));
                 localStorage.setItem('peHubUsers', JSON.stringify(userData));
+                // also save under generic `users` key used by login
+                localStorage.setItem('users', JSON.stringify(userData));
                 console.log('[registration] account saved to localStorage and userData array');
             } else {
                 currentUser = formData;
                 localStorage.setItem('peHubUser', JSON.stringify(currentUser));
+                // if SDK worked, also mirror to users key locally
+                try {
+                    const existing = JSON.parse(localStorage.getItem('users') || '[]');
+                    existing.push(formData);
+                    localStorage.setItem('users', JSON.stringify(existing));
+                } catch (err) {}
             }
 
             showMainApp();
@@ -3665,6 +3668,13 @@
             if (percentage >= 70 && !completedQuizLevels.includes(currentQuizLevel)) {
                 completedQuizLevels.push(currentQuizLevel);
                 
+                // Sync completed quiz levels to currentUser
+                if (currentUser) {
+                    currentUser.completed_quiz_levels = completedQuizLevels.slice();
+                    localStorage.setItem('peHubUser', JSON.stringify(currentUser));
+                    updateDashboard(); // Refresh dashboard to show updated quiz count
+                }
+                
                 // Update user's house points and quiz progress
                 if (window.dataSdk && currentUser) {
                     const userRecord = userData.find(record => record.user_id === (currentUser.student_id || currentUser.user_id));
@@ -3962,13 +3972,26 @@
                 selfEvaluation: Object.keys(selfEval).length ? selfEval : undefined
             };
             
+            // Check if all main lessons (1-10) are completed for this sport to mark sport as completed
+            const mainLessons = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+            const allMainCompleted = mainLessons.every(l => progressData[currentSport][`lesson_${l}`]?.completed);
+            if (allMainCompleted && currentUser) {
+                if (!currentUser.completed_sports) {
+                    currentUser.completed_sports = [];
+                }
+                if (!currentUser.completed_sports.includes(currentSport)) {
+                    currentUser.completed_sports.push(currentSport);
+                }
+            }
+            
             // Save to database with optimistic updates
             if (window.dataSdk) {
                 const userRecord = userData.find(record => record.user_id === currentUser.student_id);
                 if (userRecord) {
                     await window.dataSdk.update({
                         ...userRecord,
-                        sport_progress: JSON.stringify(progressData)
+                        sport_progress: JSON.stringify(progressData),
+                        completed_sports: currentUser.completed_sports || []
                     });
                 }
             }
@@ -3977,13 +4000,14 @@
             try {
                 currentUser.sport_progress = JSON.stringify(progressData);
                 localStorage.setItem('peHubUser', JSON.stringify(currentUser));
+                updateDashboard(); // Refresh dashboard to show updated sports count
 
                 // Also update local list of users if present
                 try {
                     const users = JSON.parse(localStorage.getItem('peHubUsers') || '[]');
                     const idx = users.findIndex(u => (u.user_id || u.student_id) === (currentUser.user_id || currentUser.student_id));
                     if (idx >= 0) {
-                        users[idx] = { ...users[idx], sport_progress: currentUser.sport_progress };
+                        users[idx] = { ...users[idx], sport_progress: currentUser.sport_progress, completed_sports: currentUser.completed_sports || [] };
                     } else {
                         users.push(currentUser);
                     }
@@ -4308,12 +4332,21 @@
         function updateDashboard() {
             if (!currentUser) return;
 
-            // Update progress rings
-            updateProgressRing('overallProgress', 'overallProgressText', 15);
+            // Calculate actual completed sports (count lessons marked as complete)
+            const completedSports = (currentUser.completed_sports || []).length || 0;
             
-            // Update statistics
-            document.getElementById('completedSports').textContent = '2';
-            document.getElementById('completedQuizzes').textContent = '12';
+            // Calculate actual completed quizzes (count completed quiz levels)
+            const completedQuizzes = (currentUser.completed_quiz_levels || []).length || 0;
+            
+            // Update progress rings (calculate from actual completion percentage)
+            const totalActivities = 10; // estimate: count of all available sports + quiz levels
+            const completedActivities = completedSports + Math.min(completedQuizzes, 10); // normalize quiz count
+            const progressPercentage = Math.round((completedActivities / totalActivities) * 100);
+            updateProgressRing('overallProgress', 'overallProgressText', progressPercentage);
+            
+            // Update statistics with real data
+            document.getElementById('completedSports').textContent = completedSports;
+            document.getElementById('completedQuizzes').textContent = completedQuizzes;
             
             // Update house points and level
             const housePoints = currentUser.house_points || 0;
@@ -4364,43 +4397,126 @@
         }
 
         function getAvatarBodyParts(level) {
-            // Progressive body part revelation: 20 levels total
-            const parts = {
-                feet: level >= 1,
-                legs: level >= 3,
-                waist: level >= 5,
-                torso: level >= 7,
-                arms: level >= 9,
-                shoulders: level >= 11,
-                neck: level >= 13,
-                head_outline: level >= 15,
-                face_features: level >= 17,
-                full_detail: level >= 19
+            // Returns a set of normalized parameters used by the renderer
+            // level: 1..20 -> t: 0..1
+            const t = Math.max(0, Math.min(1, (level - 1) / 19));
+
+            // muscle scales from very skinny -> very muscular
+            const muscleScale = 0.6 + t * 1.4; // 0.6 .. 2.0
+
+            // waistFactor: female narrows slightly with fitness, male stays wider
+            const waistFactor = 1 - (t * 0.12);
+
+            // limb thickness in px base values (will be multiplied)
+            const armThickness = 6 + Math.round(t * 16); // 6..22
+            const legThickness = 8 + Math.round(t * 18); // 8..26
+
+            // posture: negative = slouch, zero upright, positive = powerful chest out
+            const posture = -6 + Math.round(t * 12); // -6deg .. +6deg
+
+            // face detail appears later
+            const faceDetail = level >= 10;
+
+            // flex pose for top levels
+            const isFlexPose = t > 0.85;
+
+            return {
+                t,
+                muscleScale,
+                waistFactor,
+                armThickness,
+                legThickness,
+                posture,
+                faceDetail,
+                isFlexPose
             };
-            return parts;
         }
 
         function renderAvatarBody(level, isMale, parts) {
-            // Sport-specific animations and poses based on current sport
-            const sportPoses = {
-                basketball: isMale ? '🏀' : '⛹️‍♀️',
-                football: isMale ? '⚽' : '⚽',
-                handball: isMale ? '🤾‍♂️' : '🤾‍♀️',
-                default: isMale ? '🏃‍♂️' : '🏃‍♀️'
-            };
-            
-            const currentPose = currentSport ? (sportPoses[currentSport] || sportPoses.default) : sportPoses.default;
-            
-            // Progressive revelation based on level
-            if (level < 5) {
-                return `<div style="font-size: 2rem; opacity: 0.7;">👟</div>`; // Feet/legs only
-            } else if (level < 10) {
-                return `<div style="font-size: 3rem; opacity: 0.8;">🦵</div>`; // Lower body
-            } else if (level < 15) {
-                return `<div style="font-size: 4rem; opacity: 0.9;">${currentPose}</div>`; // Most of body
-            } else {
-                return `<div style="font-size: 4rem;">${currentPose}</div>`; // Full body
-            }
+            // Render a simple SVG silhouette that varies by `isMale` and `parts` parameters.
+            // `parts` contains normalized values computed by getAvatarBodyParts.
+            const p = parts || getAvatarBodyParts(level);
+
+            const width = 140;
+            const height = 220;
+            const torsoWidth = Math.round(40 * p.muscleScale * (isMale ? 1.05 : 0.95));
+            const torsoHeight = 70 + Math.round(p.t * 30);
+            const waist = Math.round(torsoWidth * (isMale ? 0.9 : p.waistFactor));
+            const armW = p.armThickness;
+            const legW = p.legThickness;
+            const hue = 200 - Math.round(p.t * 60);
+            const fillColor = `hsl(${hue}, ${50 + Math.round(p.t * 30)}%, ${50 - Math.round(p.t * 10)}%)`;
+
+            // Head
+            const head = `
+                <circle cx="70" cy="36" r="18" fill="${fillColor}" stroke="#fff" stroke-width="2" />
+            `;
+
+            // Face features if allowed
+            const face = p.faceDetail ? `
+                <circle cx="62" cy="34" r="2" fill="#222" />
+                <circle cx="78" cy="34" r="2" fill="#222" />
+                <path d="M60 44 Q70 50 80 44" stroke="#222" stroke-width="2" fill="transparent" stroke-linecap="round" />
+            ` : '';
+
+            // Torso path (simple rounded trapezoid)
+            const torso = `
+                <path d="M ${70 - torsoWidth/2} ${60} 
+                          Q ${70 - torsoWidth/2 - 6} ${60 + torsoHeight/4} ${70 - waist/2} ${60 + torsoHeight} 
+                          L ${70 + waist/2} ${60 + torsoHeight} 
+                          Q ${70 + torsoWidth/2 + 6} ${60 + torsoHeight/4} ${70 + torsoWidth/2} ${60} Z"
+                      fill="${fillColor}" stroke="#fff" stroke-width="2" />
+            `;
+
+            // Arms (left and right) — rotated rectangles simulated by paths
+            const armOffsetY = 72;
+            const leftArm = p.isFlexPose ? `
+                <path d="M ${70 - torsoWidth/2 - 2} ${armOffsetY} C ${50} ${armOffsetY} ${46} ${armOffsetY-20} ${52} ${armOffsetY-36} L ${56} ${armOffsetY-32} C ${50} ${armOffsetY-18} ${64} ${armOffsetY} ${70 - torsoWidth/2} ${armOffsetY} Z" fill="${fillColor}" stroke="#fff" stroke-width="2"/>
+                <circle cx="52" cy="${armOffsetY-36}" r="6" fill="${fillColor}" stroke="#fff" stroke-width="2" />
+            ` : `
+                <rect x="${70 - torsoWidth/2 - armW - 4}" y="${armOffsetY}" width="${armW}" height="${torsoHeight-10}" rx="${armW/2}" fill="${fillColor}" stroke="#fff" stroke-width="2" />
+            `;
+
+            const rightArm = p.isFlexPose ? `
+                <path d="M ${70 + torsoWidth/2 + 2} ${armOffsetY} C ${90} ${armOffsetY} ${94} ${armOffsetY-20} ${88} ${armOffsetY-36} L ${84} ${armOffsetY-32} C ${90} ${armOffsetY-18} ${76} ${armOffsetY} ${70 + torsoWidth/2} ${armOffsetY} Z" fill="${fillColor}" stroke="#fff" stroke-width="2"/>
+                <circle cx="88" cy="${armOffsetY-36}" r="${6 + Math.round(p.t*3)}" fill="${fillColor}" stroke="#fff" stroke-width="2" />
+            ` : `
+                <rect x="${70 + torsoWidth/2 + 4}" y="${armOffsetY}" width="${armW}" height="${torsoHeight-10}" rx="${armW/2}" fill="${fillColor}" stroke="#fff" stroke-width="2" />
+            `;
+
+            // Legs
+            const legY = 60 + torsoHeight;
+            const leftLeg = `
+                <rect x="${70 - waist/2 - legW}" y="${legY}" width="${legW}" height="${60 + Math.round(p.t*20)}" rx="${legW/2}" fill="${fillColor}" stroke="#fff" stroke-width="2" />
+            `;
+            const rightLeg = `
+                <rect x="${70 + waist/2}" y="${legY}" width="${legW}" height="${60 + Math.round(p.t*20)}" rx="${legW/2}" fill="${fillColor}" stroke="#fff" stroke-width="2" />
+            `;
+
+            // Feet simple
+            const feet = `
+                <ellipse cx="${70 - 18}" cy="${legY + 70}" rx="14" ry="6" fill="#333" opacity="${0.5 + p.t*0.5}" />
+                <ellipse cx="${70 + 18}" cy="${legY + 70}" rx="14" ry="6" fill="#333" opacity="${0.5 + p.t*0.5}" />
+            `;
+
+            // Compose SVG
+            const svg = `
+                <svg width="${width}px" height="${height}px" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img">
+                    <title>Avatar level ${level} ${isMale ? 'male' : 'female'}</title>
+                    <g transform="rotate(${p.posture} 70 ${height/2})">
+                        ${leftLeg}
+                        ${rightLeg}
+                        ${torso}
+                        ${leftArm}
+                        ${rightArm}
+                        ${head}
+                        ${face}
+                        ${feet}
+                    </g>
+                </svg>
+            `;
+
+            return svg;
         }
 
         function updateProgressRing(ringId, textId, percentage) {
@@ -4577,28 +4693,84 @@
             }, 500);
         }
 
-        function generateSampleStudents() {
+        function generateSampleStudents(count = null) {
+            // Create a test class "1B" labelled as TEST with 10-15 students by default
+            const min = 10, max = 15;
+            const n = Number.isInteger(count) && count > 0 ? count : Math.floor(Math.random() * (max - min + 1)) + min;
+            const houses = ['red', 'green', 'yellow', 'blue'];
+            const students = [];
             const sampleNames = [
                 'Emma Johnson', 'Liam Smith', 'Olivia Brown', 'Noah Davis', 'Ava Wilson',
                 'Ethan Moore', 'Sophia Taylor', 'Mason Anderson', 'Isabella Thomas', 'William Jackson',
-                'Mia White', 'James Harris', 'Charlotte Martin', 'Benjamin Thompson', 'Amelia Garcia'
+                'Mia White', 'James Harris', 'Charlotte Martin', 'Benjamin Thompson', 'Amelia Garcia',
+                'Lucas Robinson', 'Harper Clark', 'Henry Lewis', 'Evelyn Walker', 'Alexander Young'
             ];
-            
-            const classes = ['Year 1C', 'Year 2H', 'Year 3S', 'Year 4B', 'Year 5J', 'Year 6I'];
-            const houses = ['red', 'green', 'yellow', 'blue'];
-            
-            return sampleNames.map((name, index) => ({
-                user_type: 'student',
-                full_name: name,
-                email: `${name.toLowerCase().replace(' ', '.')}@crescendo.edu`,
-                student_id: `STU${(index + 1).toString().padStart(3, '0')}`,
-                class_grade: classes[index % classes.length],
-                house_team: houses[index % houses.length],
-                house_points: Math.floor(Math.random() * 50) + 10,
-                avatar_level: Math.floor(Math.random() * 5) + 1,
-                profile_photo: null
-            }));
+            for (let i = 1; i <= n; i++) {
+                const house = houses[Math.floor(Math.random() * houses.length)];
+                const points = Math.floor(Math.random() * 201); // 0..200
+                let name = sampleNames[(i - 1) % sampleNames.length];
+                // If there are more students than sample names, append index to keep unique
+                if (i > sampleNames.length) name = `${name} ${i}`;
+                const stu = {
+                    user_type: 'student',
+                    id: `test-1B-${i}`,
+                    studentId: `1B-${String(i).padStart(2, '0')}`,
+                    student_id: `1B-${String(i).padStart(2, '0')}`,
+                    fullName: name,
+                    full_name: name,
+                    name: name,
+                    email: `test1b${i}@example.com`,
+                    class: '1B',
+                    class_grade: '1B',
+                    // `className` will be used in the UI (leaderboard/profile).
+                    // Keep a separate marker `class_label` to indicate these are test students.
+                    className: '1B',
+                    class_label: 'TEST',
+                    house: house,
+                    house_team: house,
+                    house_points: points,
+                    points: points,
+                    avatar_level: Math.min(20, Math.floor(points / 10) + 1),
+                    avatarLevel: Math.min(20, Math.floor(points / 10) + 1),
+                    profile_photo: null,
+                    gender: Math.random() > 0.5 ? 'male' : 'female'
+                };
+                students.push(stu);
+            }
+
+            // Merge with existing users: remove previous 1B TEST entries first
+            try {
+                const existing = JSON.parse(localStorage.getItem('users') || '[]');
+                const filtered = (existing || []).filter(u => !(u && (u.class === '1B' || u.class_grade === '1B' || u.class_label === 'TEST')));
+                const merged = filtered.concat(students);
+                localStorage.setItem('users', JSON.stringify(merged));
+                userData = merged.slice();
+            } catch (e) {
+                localStorage.setItem('users', JSON.stringify(students));
+                userData = students.slice();
+            }
+            return students;
         }
+
+        // Expose helpers so you can control test data from console or UI
+        window.generateTestClass = function (count) {
+            const arr = generateSampleStudents(count);
+            try { populateLeaderboard(); } catch (e) { /* ignore */ }
+            return arr;
+        };
+
+        window.clearTestStudents = function () {
+            try {
+                const existing = JSON.parse(localStorage.getItem('users') || '[]');
+                const filtered = (existing || []).filter(u => !(u && (u.class === '1B' || u.class_grade === '1B' || u.class_label === 'TEST')));
+                localStorage.setItem('users', JSON.stringify(filtered));
+                userData = filtered.slice();
+                try { populateLeaderboard(); } catch (e) {}
+                return filtered;
+            } catch (e) {
+                return [];
+            }
+        };
 
         async function loadAssessmentData() {
             const assessmentGrid = document.getElementById('assessmentGrid');
@@ -4879,8 +5051,144 @@
             showNotification('PDF export functionality coming soon!', 'info');
         }
 
-        // Initialize the application
-        document.addEventListener('DOMContentLoaded', initializeApp);
+        // Toggle between student registration and login forms
+        function toggleAuthForms(mode) {
+            const studentForm = document.getElementById('studentForm');
+            const studentLogin = document.getElementById('studentLoginForm');
+            const teacherForm = document.getElementById('teacherForm');
+            const toLoginBtn = document.getElementById('toStudentLoginBtn');
+            const toRegBtn = document.getElementById('toStudentRegisterBtn');
+
+            if (mode === 'studentLogin') {
+                if (studentForm) studentForm.classList.add('hidden');
+                if (studentLogin) studentLogin.classList.remove('hidden');
+                if (teacherForm) teacherForm.classList.add('hidden');
+                if (toLoginBtn) toLoginBtn.style.display = 'none';
+                if (toRegBtn) toRegBtn.style.display = 'inline-block';
+            } else if (mode === 'studentRegister') {
+                if (studentForm) studentForm.classList.remove('hidden');
+                if (studentLogin) studentLogin.classList.add('hidden');
+                if (toLoginBtn) toLoginBtn.style.display = 'inline-block';
+                if (toRegBtn) toRegBtn.style.display = 'none';
+            }
+        }
+
+        // Simple student login handler: matches email + studentId against stored users
+        async function handleStudentLogin(e) {
+            e.preventDefault();
+            const email = (document.getElementById('studentLoginEmail') || {}).value || '';
+            const studentId = (document.getElementById('studentLoginId') || {}).value || '';
+            const password = (document.getElementById('studentLoginPassword') || {}).value || '';
+
+            // try in-memory `userData` first, then localStorage fallback
+            let users = Array.isArray(userData) && userData.length ? userData : [];
+            try {
+                const stored = JSON.parse(localStorage.getItem('users') || '[]');
+                if (Array.isArray(stored) && stored.length) users = stored;
+            } catch (err) {
+                // ignore parse errors
+            }
+
+            const found = users.find(u => {
+                const uEmail = (u.email || '').toLowerCase();
+                const uId = (u.studentId || u.studentID || u.student_id || u.id || '').toString();
+                return uEmail === email.toLowerCase() && uId === studentId.toString();
+            });
+
+            if (found) {
+                // verify password if present
+                if (found.password && password && found.password === password) {
+                    currentUser = found;
+                    currentUserType = 'student';
+                    showNotification(`Welcome back, ${found.fullName || found.name || 'Student'}!`, 'success');
+                    setTimeout(() => showMainApp(), 600);
+                } else if (!found.password) {
+                    // legacy account without password, allow login by id+email
+                    currentUser = found;
+                    currentUserType = 'student';
+                    showNotification(`Welcome back, ${found.fullName || found.name || 'Student'}! (no password set)`, 'info');
+                    setTimeout(() => showMainApp(), 600);
+                } else {
+                    showNotification('Invalid password. Please try again.', 'error');
+                }
+            } else {
+                showNotification('Invalid credentials. Please check your email and Student ID.', 'error');
+            }
+        }
+
+        // Populate leaderboard panel with house totals and top students
+        function populateLeaderboard() {
+            const container = document.getElementById('leaderboardTab');
+            if (!container) return;
+            let students = [];
+            if (Array.isArray(userData) && userData.length) {
+                students = userData.slice();
+            } else {
+                try {
+                    students = JSON.parse(localStorage.getItem('users') || '[]') || [];
+                } catch (e) {
+                    students = [];
+                }
+            }
+            if (!students.length && typeof generateSampleStudents === 'function') {
+                const generated = generateSampleStudents();
+                if (Array.isArray(generated) && generated.length) students = generated;
+            }
+            const houseKeys = ['red','green','yellow','blue'];
+            const houses = Object.fromEntries(houseKeys.map(k => [k, {key:k, total:0, students:[]} ]));
+            students.forEach(s => {
+                const house = (s.house || s.house_color || (s.studentHouse||'') ).toString().toLowerCase();
+                const points = Number(s.house_points ?? s.points ?? 0) || 0;
+                const name = s.fullName || s.name || s.displayName || s.email || ('Student ' + (s.studentId || ''));
+                if (houses[house]) {
+                    houses[house].total += points;
+                    const classLabel = s.className || s.class || s.class_grade || s.class_label || '';
+                    houses[house].students.push({ name, points, id: s.studentId || s.id, className: classLabel });
+                }
+            });
+            // sort houses by total points desc
+            const houseOrder = Object.values(houses).sort((a,b)=> b.total - a.total);
+            const html = houseOrder.map(h => {
+                const colorClass = 'house-card ' + h.key;
+                const top = h.students.sort((a,b)=> b.points - a.points).slice(0,3);
+                const studentsList = top.length ? '<ol style="text-align:left;margin:0;padding-left:1rem;">' + top.map(st => {
+                    const cls = st.className ? ` (${escapeHtml(st.className)})` : '';
+                    return `<li>${escapeHtml(st.name)}${cls} — <strong>${st.points}</strong></li>`;
+                }).join('') + '</ol>' : '<div style="text-align:left;color:#666">No students yet</div>';
+                return `<div class="${colorClass}">
+                            <div class="house-name">${h.key.charAt(0).toUpperCase() + h.key.slice(1)} House</div>
+                            <div class="house-total">${h.total}</div>
+                            <div style="margin-top:0.5rem;">${studentsList}</div>
+                        </div>`;
+            }).join('');
+            container.innerHTML = `<div class="house-leaderboard" style="grid-template-columns:repeat(4,1fr);gap:1rem;">${html}</div>`;
+        }
+
+        // Wire up auth switch buttons and login form after DOM ready
+        document.addEventListener('DOMContentLoaded', function () {
+            const toLogin = document.getElementById('toStudentLoginBtn');
+            const toReg = document.getElementById('toStudentRegisterBtn');
+            const studentLoginForm = document.getElementById('studentLoginForm');
+
+            if (toLogin) toLogin.addEventListener('click', () => toggleAuthForms('studentLogin'));
+            if (toReg) toReg.addEventListener('click', () => toggleAuthForms('studentRegister'));
+            if (studentLoginForm) studentLoginForm.addEventListener('submit', handleStudentLogin);
+        });
+
+        // Initialize the application and refresh leaderboard after init
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeApp().then(() => {
+                try {
+                    if (typeof generateTestClass === 'function') {
+                        // create class 1B now for testing
+                        generateTestClass();
+                    }
+                } catch (e) { console.warn('generateTestClass failed', e); }
+                try { populateLeaderboard(); } catch (e) { console.warn('populateLeaderboard failed', e); }
+            }).catch(() => {
+                try { populateLeaderboard(); } catch (e) { console.warn('populateLeaderboard failed', e); }
+            });
+        });
     </script>
 </body>
 </html>
